@@ -31,11 +31,12 @@ const MangaSearch = ({ navigation }) => {
       const response = await axios.get('https://api.mangadex.org/manga', {
         params: { title: query, limit: 20, includes: ['cover_art'] },
       });
-      navigation.navigate('Results', { results: response.data.data });
+      navigation.navigate('Results', { query, results: response.data.data });
     } catch (error) {
       console.error('Error searching manga:', error);
     }
   };
+  
 
   const getCoverImageUrl = (manga) => {
     const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
@@ -88,7 +89,9 @@ const styles = StyleSheet.create({
     padding: 10, 
     backgroundColor: '#1e1e1e',
   },
-  searchContainer: { flexDirection: 'row', marginBottom: 15 },
+  searchContainer: { 
+    flexDirection: 'row', 
+    marginBottom: 15 },
   input: {
     flex: 1,
     borderWidth: 1,

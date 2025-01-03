@@ -1,8 +1,17 @@
-import React from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { View, TextInput, Text, Image, FlatList, TouchableOpacity, StyleSheet, Button } from 'react-native';
 
 const SearchResults = ({ route, navigation }) => {
-  const { results } = route.params;
+  const { query: initialQuery, results } = route.params;
+  const [searchQuery, setSearchQuery] = useState(initialQuery || ''); // Initialize with the query passed from homepage
+  const [mangaResults, setMangaResults] = useState(results || []);
+
+  useEffect(() => {
+    if (initialQuery) {
+      searchManga(initialQuery); // Perform search when the screen loads with the initial query
+    }
+  }, [initialQuery]);
 
   const getCoverImageUrl = (manga) => {
     const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
@@ -13,11 +22,40 @@ const SearchResults = ({ route, navigation }) => {
     return null;
   };
 
+  const searchManga = async (query) => {
+    if (!query) return;
+    try {
+      const response = await axios.get('https://api.mangadex.org/manga', {
+        params: { title: query, limit: 20, includes: ['cover_art'] },
+      });
+      setMangaResults(response.data.data); // Update the results with new search
+    } catch (error) {
+      console.error('Error searching manga:', error);
+    }
+  };
+
+  const handleSearch = () => {
+    searchManga(searchQuery); // Trigger the search with the updated query
+    navigation.setParams({ query: searchQuery }); // Update the query in the route params for navigation
+  };
+
   return (
     <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          value={searchQuery} // Bind the input to searchQuery state
+          onChangeText={setSearchQuery} // Update searchQuery as the user types
+          placeholder="Search manga..."
+          placeholderTextColor="#aaa"
+        />
+        <Button title="Search" onPress={handleSearch} />
+      </View>
       <FlatList
-        data={results}
+        data={mangaResults}
         keyExtractor={(item) => item.id}
+        numColumns={3}
+        contentContainerStyle={styles.grid}
         renderItem={({ item }) => {
           const imageUrl = getCoverImageUrl(item);
           return (
@@ -26,7 +64,9 @@ const SearchResults = ({ route, navigation }) => {
               onPress={() => navigation.navigate('Details', { manga: item })}
             >
               {imageUrl && <Image source={{ uri: imageUrl }} style={styles.cover} />}
-              <Text style={styles.title}>{item.attributes.title.en || 'No Title Available'}</Text>
+              <Text style={styles.title} numberOfLines={2}>
+                {item.attributes.title.en || 'No Title Available'}
+              </Text>
             </TouchableOpacity>
           );
         }}
@@ -36,10 +76,44 @@ const SearchResults = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
-  card: { marginBottom: 10, padding: 10, backgroundColor: '#f9f9f9', borderRadius: 5, flexDirection: 'row', alignItems: 'center' },
-  cover: { width: 50, height: 75, marginRight: 10, borderRadius: 5 },
-  title: { fontSize: 16, fontWeight: 'bold', flex: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    padding: 10,
+  },
+  searchContainer: {
+    padding: 6, 
+    flexDirection: 'row', 
+    marginBottom: 10
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    backgroundColor: '#fff',
+  },
+  grid: {
+    paddingBottom: 20,
+  },
+  card: {
+    flex: 1,
+    margin: 5,
+    alignItems: 'center',
+  },
+  cover: {
+    width: 100,
+    height: 150,
+    borderRadius: 5,
+  },
+  title: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#fff',
+    textAlign: 'center',
+  },
 });
 
 export default SearchResults;
