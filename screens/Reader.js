@@ -42,16 +42,33 @@ const Reader = ({ route }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {pages.map((pageUrl, index) => (
-        <Image key={index} source={{ uri: pageUrl }} style={styles.pageImage} />
+        <Image 
+        key={index} 
+        source={{ uri: pageUrl }} 
+        resizeMode='contain'
+        style={styles.pageImage} 
+        />
       ))}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'column', alignItems: 'center' },
-  pageImage: { width: '100%', height: 600, marginBottom: 10 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { 
+    flexDirection: 'column', 
+    alignItems: 'center',
+    backgroundColor: '#121212',
+  },
+  pageImage: { 
+    width: '100%', 
+    height: 600, 
+
+  },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
 });
 
 export default Reader;
