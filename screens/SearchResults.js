@@ -49,7 +49,9 @@ const SearchResults = ({ route, navigation }) => {
           placeholder="Search manga..."
           placeholderTextColor="#aaa"
         />
-        <Button title="Search" onPress={handleSearch} />
+        <TouchableOpacity onPress={handleSearch}>
+            <Image source={require('../assets/search.png')} style={styles.searchIcon} />
+        </TouchableOpacity>
       </View>
       <FlatList
         data={mangaResults}
@@ -82,18 +84,23 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   searchContainer: {
-    padding: 6, 
-    flexDirection: 'row', 
-    marginBottom: 10
+    flexDirection: 'row',
+    marginBottom: 15,
+    alignItems: 'center',
   },
   searchInput: {
     flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    borderRadius: 5,
-    marginRight: 10,
+    borderRadius: 10,
     backgroundColor: '#fff',
+  },
+  searchIcon: {
+    width: 30,
+    height: 30,
+    tintColor: '#fff',
+    marginLeft: 10,
   },
   grid: {
     paddingBottom: 20,

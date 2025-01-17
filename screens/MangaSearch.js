@@ -1,68 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, FlatList, Image, Text, TouchableOpacity, StatusBar } from 'react-native';
-import axios from 'axios';
-
+import { View, TextInput, Image, Text, TouchableOpacity, FlatList, StyleSheet, StatusBar, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchPopularMangas, fetchUpdatedChapters, searchManga } from './api/api';  
+import {lightTheme, darkTheme} from './themes/themes';
+import { useTheme } from './themes/themeContext';
+import Slider from './components/Slider';
 const MangaSearch = ({ navigation }) => {
   const [query, setQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [popularMangas, setPopularMangas] = useState([]);
+  const [updatedMangas, setUpdatedMangas] = useState([]);
+  const {isDarkMode, toggleTheme } = useTheme(); 
+
+  const themeStyles = isDarkMode ? darkTheme : lightTheme;
+ 
+  useFocusEffect(
+    React.useCallback(() => {
+      setQuery('');
+      setIsSearchActive(false);
+    }, [])
+  );
 
   useEffect(() => {
-    const fetchPopularMangas = async () => {
+    StatusBar.setHidden(true);
+    const fetchData = async () => {
       try {
-        const response = await axios.get('https://api.mangadex.org/manga', {
-          params: {
-            limit: 51,
-            includes: ['cover_art'],
-            order: { rating: 'desc' },
-          },
-        });
-        setPopularMangas(response.data.data);
+        const popularMangasData = await fetchPopularMangas();
+        setPopularMangas(popularMangasData);
+
+        const updatedMangasData = await fetchUpdatedChapters();
+        setUpdatedMangas(updatedMangasData);
       } catch (error) {
-        console.error('Error fetching popular mangas:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
-    fetchPopularMangas();
+    fetchData();
   }, []);
 
-  const searchManga = async () => {
-    if (!query) return;
+  const handleSearch = async () => {
     try {
-      const response = await axios.get('https://api.mangadex.org/manga', {
-        params: { title: query, limit: 20, includes: ['cover_art'] },
-      });
-      navigation.navigate('Results', { query, results: response.data.data });
+      const results = await searchManga(query);
+      navigation.navigate('Results', { query, results });
     } catch (error) {
       console.error('Error searching manga:', error);
     }
   };
-  
 
   const getCoverImageUrl = (manga) => {
-    const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
-    if (coverRelation) {
-      return `https://uploads.mangadex.org/covers/${manga.id}/${coverRelation.attributes.fileName}.512.jpg`;
+    if (manga && manga.relationships) {
+      const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
+      if (coverRelation) {
+        return `https://uploads.mangadex.org/covers/${manga.id}/${coverRelation.attributes.fileName}.512.jpg`;
+      }
     }
     return null;
   };
+  
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#1e2026" />
-        <TextInput
-          style={styles.input}
-          placeholder="Search Manga..."
-          value={query}
-          onChangeText={setQuery}
-        />
-        <Button title="Search" onPress={searchManga} />
-      </View>
+  const renderMangaList = (data, title) => (
+    <View style={styles.sectionContainer}>
+      <Text style={styles.sectionTitle}>{title}</Text>
       <FlatList
-        data={popularMangas}
+        data={data}
         keyExtractor={(item) => item.id}
-        numColumns={3}
-        contentContainerStyle={styles.grid}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.horizontalList}
+        scrollEnabled={data.length > 0}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
@@ -73,7 +78,7 @@ const MangaSearch = ({ navigation }) => {
               style={styles.cover}
               resizeMode="cover"
             />
-            <Text style={styles.title} numberOfLines={2}>
+            <Text style={styles.cardTitle} numberOfLines={2}>
               {item.attributes.title.en || 'No Title'}
             </Text>
           </TouchableOpacity>
@@ -81,34 +86,194 @@ const MangaSearch = ({ navigation }) => {
       />
     </View>
   );
+
+
+ 
+  return (
+    <ScrollView style={[styles.container, themeStyles.container]}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"}   backgroundColor={isDarkMode ? "#333" : "#fff"} 
+      />
+
+      <View style={styles.searchContainer}>
+        <View>
+          <Image
+            source={require('../assets/app-logo.png')} // Replace with your logo's path
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Search Manga..."
+          placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
+          value={query}
+          onChangeText={setQuery}
+          onSubmitEditing={handleSearch} // This triggers the search when Enter is pressed
+          returnKeyType="search" // Optional: Change the "return" key to "search"
+        />
+        
+        <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('Settings')}>
+          <Image 
+            source= {require("../assets/icons/settings.png")}
+            style={styles.settingsIcon}
+          />
+        </TouchableOpacity>
+      </View>
+
+      <Slider 
+        items={popularMangas} 
+        getImageUrl={getCoverImageUrl} 
+      />
+      <FlatList
+        ListHeaderComponent={
+          <>
+            {renderMangaList(updatedMangas, 'Updated Manga')}
+          </>
+        }
+        contentContainerStyle={styles.listContainer}
+        scrollEnabled={false}
+      />
+
+      <Text style={styles.sectionTitle}>Popular Manga</Text>
+      <FlatList
+        data={popularMangas}
+        keyExtractor={(item) => item.id}
+        numColumns={3}
+        contentContainerStyle={styles.grid}
+        scrollEnabled={false}
+        renderItem={({ item }) => {
+          const imageUrl = getCoverImageUrl(item);
+          return (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('Details', { manga: item })}
+            >
+              {imageUrl && <Image source={{ uri: imageUrl }} style={styles.cover} />}
+              <Text style={styles.cardTitle} numberOfLines={2}>
+                {item.attributes.title.en || 'No Title Available'}
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
+      />
+    </ScrollView>
+  );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 10, 
-    backgroundColor: '#1e1e1e',
+  container: {
+    flex: 1,
   },
-  searchContainer: { 
-    flexDirection: 'row', 
-    marginBottom: 15 },
+  light: {
+    container: {
+      backgroundColor: '#fff',
+    },
+  },
+  dark: {
+    container: {
+      backgroundColor: '#333',
+    },
+  },
+  headerBackground: {
+    width: '100%',
+    height: 180,
+  },
+  headerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 50,
+    height: 50,
+  },
+  appTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  searchContainer: {
+    position: 'absolute',
+    flexDirection: 'row',
+    padding: 5,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  
+  },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    marginHorizontal: 20,
+    borderRadius: 8,
     padding: 10,
-    borderRadius: 5,
-    marginRight: 10,
     backgroundColor: '#fff',
+    borderRadius: 20, 
   },
-  grid: { paddingBottom: 20 },
-  card: { flex: 1, margin: 5, alignItems: 'center' },
-  cover: { width: 100, height: 150, borderRadius: 5 },
-  title: {
-    marginTop: 5,
+  searchIcon: {
+    width: 25,
+    height: 25,
+    marginLeft: 10,
+    tintColor: '#fff',
+  },
+  sectionContainer: {
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginHorizontal: 10,
+  },
+  horizontalList: {
+    paddingHorizontal: 10,
+    
+  },
+  card: {
+    width: 120,
+    marginRight: 10,
+    backgroundColor: '#5b2e99',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 20,
+  
+  },
+  cover: {
+    width: '100%',
+    height: 180,
+  },
+  cardTitle: {
+    padding: 5,
     fontSize: 12,
     color: '#fff',
     textAlign: 'center',
+  },
+  listContainer: {
+    paddingBottom: 20,
+  },
+
+  grid: {
+    paddingBottom: 20,
+  },
+  circleButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 35, // Half the width/height to make it a perfect circle
+    backgroundColor: '#5b2e99',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  settingsIcon: {
+    width: 20,
+    height: 20, // Adjust size to fit nicely within the circle
+    tintColor: '#FFFFFF', // Optional: Adjust icon color if needed
   },
 });
 

@@ -7,8 +7,9 @@ import axios from 'axios';
 const MangaDetails = ({ route, navigation }) => {
   const { manga } = route.params;
   const [chapters, setChapters] = useState([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(1); // Start at page 1 for the first 10 chapters
   const [loading, setLoading] = useState(false);
+  const [hasMoreChapters, setHasMoreChapters] = useState(true); // Track if there are more chapters
 
   const getCoverImageUrl = () => {
     const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
@@ -25,13 +26,20 @@ const MangaDetails = ({ route, navigation }) => {
       const response = await axios.get('https://api.mangadex.org/chapter', {
         params: {
           manga: manga.id,
-          limit: 100,
+          limit: 10, // Limit to 10 chapters per request
           translatedLanguage: ['en'],
           order: { chapter: 'asc' },
-          offset: (page - 1) * 100,
+          offset: (page - 1) * 10, // Calculate offset for each page
         },
       });
-      setChapters((prevChapters) => [...prevChapters, ...response.data.data]);
+
+      const newChapters = response.data.data;
+
+      if (newChapters.length === 0) {
+        setHasMoreChapters(false); // No more chapters left
+      } else {
+        setChapters((prevChapters) => [...prevChapters, ...newChapters]);
+      }
     } catch (error) {
       console.error('Error fetching chapters:', error);
     } finally {
@@ -40,13 +48,29 @@ const MangaDetails = ({ route, navigation }) => {
   };
 
   const loadMore = () => {
-    setPage(page + 1);
-    fetchChapters();
+    if (hasMoreChapters) {
+      setPage(page + 1); // Increment the page to fetch the next set of chapters
+    }
   };
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleDescription = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString); // Create a Date object
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month and pad with leading zero if needed
+    const day = String(date.getDate()).padStart(2, '0'); // Get the day and pad with leading zero if needed
+    const year = date.getFullYear(); // Get the year
+    
+    return `${month}-${day}-${year}`; // Return the formatted date as MM-DD-YYYY
+  };
+  
   useEffect(() => {
     fetchChapters();
-  }, []);
+  }, [page]); // Re-fetch chapters whenever the page number changes
 
   return (
     <ScrollView style={styles.container}>
@@ -61,9 +85,18 @@ const MangaDetails = ({ route, navigation }) => {
             <Text style={styles.tag}>Comedy</Text>
             <Text style={styles.tag}>Ongoing</Text>
           </View>
-          <Text style={styles.description}>
+            <Text
+            style={styles.description}
+            numberOfLines={isExpanded ? 0 : 5} // Show all if expanded, otherwise limit to 5 lines
+          >
             {manga.attributes.description.en || 'No Description Available'}
           </Text>
+
+          <TouchableOpacity onPress={toggleDescription}>
+            <Text style={styles.toggleText}>
+              {isExpanded ? 'See Less' : 'See More'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -82,29 +115,35 @@ const MangaDetails = ({ route, navigation }) => {
       <FlatList
         data={chapters}
         scrollEnabled={false}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => `${item.id}-${page}-${index}`} // Ensure unique keys
         renderItem={({ item }) => (
+        
+        <TouchableOpacity
+        onPress={() => navigation.navigate('Reader', { 
+          chapters, 
+          initialChapter: item.id 
+        })}
+        >
           <View style={styles.chapterCard}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Reader', { chapterId: item.id })}
-            >
               <Text style={styles.chapterTitle}>
-                Chapter {item.attributes.chapter}: {item.attributes.title || 'No Title'}
+                Chapter {Math.ceil(parseFloat(item.attributes.chapter))}: {item.attributes.title || 'No Title'}
               </Text>
-              <Text style={styles.chapterDate}>{item.attributes.publishAt || 'No Date'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Icon name="more-vert" size={20} color="#555" />
-            </TouchableOpacity>
+              <Text style={styles.chapterDate}>
+               {item.attributes.publishAt ? formatDate(item.attributes.publishAt) : 'No Date'}
+              </Text>
           </View>
+
+          </TouchableOpacity>
         )}
         ListFooterComponent={
           loading ? (
             <Text style={styles.loadingText}>Loading...</Text>
-          ) : (
+          ) : hasMoreChapters ? ( // Only show the button if there are more chapters
             <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore}>
               <Text style={styles.loadMoreText}>Load More</Text>
             </TouchableOpacity>
+          ) : (
+            <Text style={styles.noMoreChaptersText}>No More Chapters</Text>
           )
         }
       />
@@ -128,7 +167,11 @@ const styles = StyleSheet.create({
     marginRight: 5,
     fontSize: 12,
   },
-  description: { fontSize: 14, color: '#ddd', marginBottom: 20 },
+  description: { fontSize: 14, color: '#ddd',},
+  toggleText: {
+    color: '#fff', // Button color for toggling
+    fontSize: 14,
+  },
   actionButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -144,9 +187,8 @@ const styles = StyleSheet.create({
   actionButtonText: { color: '#fff', marginLeft: 5 },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 10 },
   chapterCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
     backgroundColor: '#292929',
     padding: 10,
     borderRadius: 5,
@@ -159,8 +201,15 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
+    marginBottom: 15,
   },
   loadMoreText: { color: '#fff' },
+  noMoreChaptersText: { 
+    color: '#aaa', 
+    textAlign: 'center', 
+    padding: 10,
+    marginBottom: 15,
+  },
   loadingText: { textAlign: 'center', color: '#aaa' },
 });
 
