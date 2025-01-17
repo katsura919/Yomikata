@@ -5,21 +5,14 @@ import { fetchPopularMangas, fetchUpdatedChapters, searchManga } from './api/api
 import {lightTheme, darkTheme} from './themes/themes';
 import { useTheme } from './themes/themeContext';
 import Slider from './components/Slider';
-const MangaSearch = ({ navigation }) => {
-  const [query, setQuery] = useState('');
-  const [isSearchActive, setIsSearchActive] = useState(false);
+
+const Home = ({ navigation }) => {
   const [popularMangas, setPopularMangas] = useState([]);
   const [updatedMangas, setUpdatedMangas] = useState([]);
   const {isDarkMode, toggleTheme } = useTheme(); 
 
   const themeStyles = isDarkMode ? darkTheme : lightTheme;
- 
-  useFocusEffect(
-    React.useCallback(() => {
-      setQuery('');
-      setIsSearchActive(false);
-    }, [])
-  );
+
 
   useEffect(() => {
     StatusBar.setHidden(true);
@@ -38,14 +31,6 @@ const MangaSearch = ({ navigation }) => {
     fetchData();
   }, []);
 
-  const handleSearch = async () => {
-    try {
-      const results = await searchManga(query);
-      navigation.navigate('Results', { query, results });
-    } catch (error) {
-      console.error('Error searching manga:', error);
-    }
-  };
 
   const getCoverImageUrl = (manga) => {
     if (manga && manga.relationships) {
@@ -94,32 +79,7 @@ const MangaSearch = ({ navigation }) => {
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"}   backgroundColor={isDarkMode ? "#333" : "#fff"} 
       />
 
-      <View style={styles.searchContainer}>
-        <View>
-          <Image
-            source={require('../assets/app-logo.png')} // Replace with your logo's path
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Search Manga..."
-          placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
-          value={query}
-          onChangeText={setQuery}
-          onSubmitEditing={handleSearch} // This triggers the search when Enter is pressed
-          returnKeyType="search" // Optional: Change the "return" key to "search"
-        />
-        
-        <TouchableOpacity style={styles.circleButton} onPress={() => navigation.navigate('Settings')}>
-          <Image 
-            source= {require("../assets/icons/settings.png")}
-            style={styles.settingsIcon}
-          />
-        </TouchableOpacity>
-      </View>
+   
 
       <Slider 
         items={popularMangas} 
@@ -136,6 +96,8 @@ const MangaSearch = ({ navigation }) => {
       />
 
       <Text style={styles.sectionTitle}>Popular Manga</Text>
+
+      <View style={styles.popularContainer}>
       <FlatList
         data={popularMangas}
         keyExtractor={(item) => item.id}
@@ -146,17 +108,18 @@ const MangaSearch = ({ navigation }) => {
           const imageUrl = getCoverImageUrl(item);
           return (
             <TouchableOpacity
-              style={styles.card}
+              style={styles.gridcard}
               onPress={() => navigation.navigate('Details', { manga: item })}
             >
-              {imageUrl && <Image source={{ uri: imageUrl }} style={styles.cover} />}
-              <Text style={styles.cardTitle} numberOfLines={2}>
+              {imageUrl && <Image source={{ uri: imageUrl }} style={styles.gridcover} />}
+              <Text style={styles.gridTitle} numberOfLines={2}>
                 {item.attributes.title.en || 'No Title Available'}
               </Text>
             </TouchableOpacity>
           );
         }}
       />
+      </View>
     </ScrollView>
   );
 };
@@ -175,49 +138,8 @@ const styles = StyleSheet.create({
       backgroundColor: '#333',
     },
   },
-  headerBackground: {
-    width: '100%',
-    height: 180,
-  },
-  headerOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 50,
-    height: 50,
-  },
-  appTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  searchContainer: {
-    position: 'absolute',
-    flexDirection: 'row',
-    padding: 5,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  
-  },
-  input: {
-    flex: 1,
-    marginHorizontal: 20,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 20, 
-  },
-  searchIcon: {
-    width: 25,
-    height: 25,
-    marginLeft: 10,
-    tintColor: '#fff',
-  },
+
+
   sectionContainer: {
     marginVertical: 10,
   },
@@ -253,9 +175,32 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingBottom: 20,
   },
-
+  popularContainer:{
+    marginHorizontal: 5,
+    marginBottom: 20,
+  },
   grid: {
     paddingBottom: 20,
+  },
+  gridcard: {
+    flex: 1,
+    margin: 5,
+    alignItems: 'center',
+    backgroundColor: '#5b2e99',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 20,
+  },
+  gridcover: {
+    width: "100%",
+    height: 150,
+    borderRadius: 5,
+  },
+  gridTitle: {
+    padding: 5,
+    fontSize: 12,
+    color: '#fff',
+    textAlign: 'center',
   },
   circleButton: {
     width: 30,
@@ -277,4 +222,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MangaSearch;
+export default Home;
