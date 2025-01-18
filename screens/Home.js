@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, Image, Text, TouchableOpacity, FlatList, StyleSheet, StatusBar, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { View, TextInput, Image, Text, TouchableOpacity, FlatList, StyleSheet, StatusBar, ScrollView } from 'react-native';
 import { fetchPopularMangas, fetchUpdatedChapters, searchManga } from './api/api';  
-import {lightTheme, darkTheme} from './themes/themes';
-import { useTheme } from './themes/themeContext';
+import {lightTheme, darkTheme} from './context/themes';
+import { useTheme } from './context/themeContext';
 import Slider from './components/Slider';
 
 const Home = ({ navigation }) => {
   const [popularMangas, setPopularMangas] = useState([]);
   const [updatedMangas, setUpdatedMangas] = useState([]);
   const {isDarkMode, toggleTheme } = useTheme(); 
+  const scrollViewRef = useRef(null);
 
-  const themeStyles = isDarkMode ? darkTheme : lightTheme;
+  const themeStyles = isDarkMode ? styles.dark : styles.light;
 
 
   useEffect(() => {
-    StatusBar.setHidden(true);
+   
     const fetchData = async () => {
       try {
         const popularMangasData = await fetchPopularMangas();
@@ -31,7 +32,14 @@ const Home = ({ navigation }) => {
     fetchData();
   }, []);
 
-
+   // Reset FlatList scroll position when the screen is focused
+   useFocusEffect(
+    React.useCallback(() => {
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: false });
+      }
+    }, [])
+  );
   const getCoverImageUrl = (manga) => {
     if (manga && manga.relationships) {
       const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
@@ -45,8 +53,9 @@ const Home = ({ navigation }) => {
 
   const renderMangaList = (data, title) => (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={themeStyles.popularText}>{title}</Text>
       <FlatList
+        
         data={data}
         keyExtractor={(item) => item.id}
         horizontal
@@ -75,10 +84,16 @@ const Home = ({ navigation }) => {
 
  
   return (
-    <ScrollView style={[styles.container, themeStyles.container]}>
+    <ScrollView 
+      ref={scrollViewRef}
+      style={[styles.container, themeStyles.container]}>
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"}   backgroundColor={isDarkMode ? "#333" : "#fff"} 
       />
-
+      <View style={styles.header}>
+        <View>
+         <Text style={themeStyles.headerText}>Home</Text>
+        </View>
+      </View>
    
 
       <Slider 
@@ -96,10 +111,11 @@ const Home = ({ navigation }) => {
         scrollEnabled={false}
       />
 
-      <Text style={styles.sectionTitle}>Popular Manga</Text>
+      <Text style={themeStyles.popularText}>Popular Manga</Text>
 
       <View style={styles.popularContainer}>
       <FlatList
+       
         data={popularMangas}
         keyExtractor={(item) => item.id}
         numColumns={2}
@@ -128,30 +144,50 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom:  80,
+    paddingBottom: 50,
+  },
+  header:{
+    height: 40,
+    paddingLeft: 10,
+    backgroundColor: '#5b2e99',
+    justifyContent: 'center'
   },
   light: {
     container: {
       backgroundColor: '#fff',
     },
+    headerText: {
+      fontFamily: 'Poppins-Bold',
+      color: '#fff', // Dark mode color for title
+      fontSize: 20,
+    },
+    popularText: {
+      fontFamily: 'Poppins-Bold',
+      fontSize: 18,
+      color: '#333',
+      marginHorizontal: 10,
+    },
+    
   },
   dark: {
     container: {
-      backgroundColor: '#333',
+      backgroundColor: '#1e1e1e',
+    },
+    headerText: {
+      fontFamily: 'Poppins-Bold',
+      color: '#fff', // Dark mode color for title
+      fontSize: 20,
+    },
+    popularText: {
+      fontFamily: 'Poppins-Bold',
+      fontSize: 18,
+      color: '#fff',
+      marginHorizontal: 10,
     },
   },
 
-
   sectionContainer: {
     marginTop: 10,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginHorizontal: 10,
- 
-
   },
   horizontalList: {
     paddingHorizontal: 10,
@@ -161,19 +197,18 @@ const styles = StyleSheet.create({
   card: {
     width: 120,
     marginRight: 10,
-    backgroundColor: '#5b2e99',
+    backgroundColor: '#2A2A2A',
     borderRadius: 8,
     overflow: 'hidden',
- 
-  
   },
   cover: {
     width: '100%',
     height: 180,
   },
   cardTitle: {
+    fontFamily: 'Poppins-Light',
     padding: 5,
-    fontSize: 15,
+    fontSize: 12,
     color: '#fff',
     textAlign: 'center',
   },
@@ -191,10 +226,10 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 5,
     alignItems: 'center',
-    backgroundColor: '#5b2e99',
+    backgroundColor: '#2A2A2A',
     borderRadius: 8,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   gridcover: {
     width: "100%",
@@ -202,8 +237,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   gridTitle: {
+    fontFamily: 'Poppins-Light',
     padding: 5,
-    fontSize: 15,
+    fontSize: 12,
     color: '#fff',
     textAlign: 'center',
   },

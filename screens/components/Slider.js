@@ -46,7 +46,7 @@ const Slider = ({ items, getImageUrl, navigation }) => {
 
 const styles = StyleSheet.create({
   backgroundImage: {
-    height: 380,
+    height: 350,
     resizeMode: 'cover',
   },
   overlay: {
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pagerView: {
-    height: 380,
+    height: 350,
     width: '100%',
     
   },
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pagerImage: {
-    marginTop: 60,
+    marginTop: 40,
     width: 210,
     height: 300,
     borderRadius: 20,

@@ -1,7 +1,7 @@
-// Reader.js
 import React, { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Reader = ({ route }) => {
   const { chapters, initialChapter } = route.params;  // Receive chapters and initial chapter ID
@@ -10,9 +10,10 @@ const Reader = ({ route }) => {
   );
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [imageDimensions, setImageDimensions] = useState([]);
 
   const currentChapter = chapters[currentChapterIndex];
-  console.log(currentChapter.attributes.chapter);
+
   useEffect(() => {
     const fetchPages = async () => {
       try {
@@ -26,6 +27,17 @@ const Reader = ({ route }) => {
 
         // Update the state with the page URLs
         setPages(pageUrls);
+
+        // Calculate and set the image dimensions for each page
+        const dimensions = await Promise.all(pageUrls.map(async (pageUrl) => {
+          const { width, height } = await new Promise((resolve) => {
+            Image.getSize(pageUrl, (width, height) => resolve({ width, height }));
+          });
+          return { width, height };
+        }));
+
+        setImageDimensions(dimensions);
+
       } catch (error) {
         console.error('Error fetching chapter pages:', error);
       } finally {
@@ -60,9 +72,19 @@ const Reader = ({ route }) => {
     <View style={styles.container}>
       {/* Current Chapter Display */}
       <View style={styles.chapterInfo}>
-      <Text style={styles.chapterText}>Chapter {Math.ceil(parseFloat(currentChapter.attributes.chapter))}</Text>
+        <TouchableOpacity onPress={goToPreviousChapter} disabled={currentChapterIndex === 0}>
+          <Text style={[styles.navText, currentChapterIndex === 0 && styles.disabled]}>
+            <Icon name="chevron-back" size={25} color="white" />
+          </Text>
+        </TouchableOpacity>
 
+        <Text style={styles.chapterText}>Chapter {Math.ceil(parseFloat(currentChapter.attributes.chapter))}</Text>
 
+        <TouchableOpacity onPress={goToNextChapter} disabled={currentChapterIndex === chapters.length - 1}>
+          <Text style={[styles.navText, currentChapterIndex === chapters.length - 1 && styles.disabled]}>
+            <Icon name="chevron-forward" size={25} color="white" />
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Chapter Pages */}
@@ -71,21 +93,11 @@ const Reader = ({ route }) => {
           <Image
             key={index}
             source={{ uri: pageUrl }}
-            resizeMode="contain"
-            style={styles.pageImage}
+            resizeMode="contain" // "contain" ensures the image retains its aspect ratio
+            style={styles.pageImage} // Dynamically set the height
           />
         ))}
       </ScrollView>
-
-      {/* Bottom Navigation Buttons */}
-      <View style={styles.navBar}>
-        <TouchableOpacity onPress={goToPreviousChapter} disabled={currentChapterIndex === 0}>
-          <Text style={[styles.navText, currentChapterIndex === 0 && styles.disabled]}>Previous</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={goToNextChapter} disabled={currentChapterIndex === chapters.length - 1}>
-          <Text style={[styles.navText, currentChapterIndex === chapters.length - 1 && styles.disabled]}>Next</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -97,14 +109,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   chapterInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    padding: 7,
     backgroundColor: '#222222',
   },
   chapterText: {
-    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
+    fontSize: 18,
     color: '#fff',
-    fontWeight: 'bold',
   },
   navBar: {
     flexDirection: 'row',
@@ -113,7 +127,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#222222',
   },
   navText: {
-    fontSize: 18,
+    fontFamily: 'Poppins-Light',
+    fontSize: 14,
     color: '#fff',
   },
   disabled: {
@@ -125,8 +140,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   pageImage: {
-    width: '100%',
+    width: '100%', // Full width of the container
     height: 600,
+    marginBottom: 10,
   },
   loadingContainer: {
     flex: 1,

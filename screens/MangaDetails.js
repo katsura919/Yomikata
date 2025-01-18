@@ -1,15 +1,16 @@
-// MangaDetails.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useTheme } from './context/themeContext';
 import axios from 'axios';
 
 const MangaDetails = ({ route, navigation }) => {
   const { manga } = route.params;
   const [chapters, setChapters] = useState([]);
-  const [page, setPage] = useState(1); // Start at page 1 for the first 10 chapters
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [hasMoreChapters, setHasMoreChapters] = useState(true); // Track if there are more chapters
+  const [hasMoreChapters, setHasMoreChapters] = useState(true);
+  const { isDarkMode } = useTheme();
+  const themeStyles = isDarkMode ? styles.dark : styles.light;
 
   const getCoverImageUrl = () => {
     const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
@@ -26,17 +27,17 @@ const MangaDetails = ({ route, navigation }) => {
       const response = await axios.get('https://api.mangadex.org/chapter', {
         params: {
           manga: manga.id,
-          limit: 10, // Limit to 10 chapters per request
+          limit: 20,
           translatedLanguage: ['en'],
           order: { chapter: 'asc' },
-          offset: (page - 1) * 10, // Calculate offset for each page
+          offset: (page - 1) * 20,
         },
       });
 
       const newChapters = response.data.data;
 
       if (newChapters.length === 0) {
-        setHasMoreChapters(false); // No more chapters left
+        setHasMoreChapters(false);
       } else {
         setChapters((prevChapters) => [...prevChapters, ...newChapters]);
       }
@@ -49,7 +50,7 @@ const MangaDetails = ({ route, navigation }) => {
 
   const loadMore = () => {
     if (hasMoreChapters) {
-      setPage(page + 1); // Increment the page to fetch the next set of chapters
+      setPage(page + 1);
     }
   };
 
@@ -59,86 +60,60 @@ const MangaDetails = ({ route, navigation }) => {
     setIsExpanded(!isExpanded);
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString); // Create a Date object
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get the month and pad with leading zero if needed
-    const day = String(date.getDate()).padStart(2, '0'); // Get the day and pad with leading zero if needed
-    const year = date.getFullYear(); // Get the year
-    
-    return `${month}-${day}-${year}`; // Return the formatted date as MM-DD-YYYY
-  };
-  
   useEffect(() => {
     fetchChapters();
-  }, [page]); // Re-fetch chapters whenever the page number changes
+  }, [page]);
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.headerSection}>
-        <Image source={{ uri: getCoverImageUrl() }} style={styles.cover} />
-        <View style={styles.metadataSection}>
-          <Text style={styles.title}>{manga.attributes.title.en || 'No Title Available'}</Text>
-          <Text style={styles.author}>By {manga.attributes.author || 'Unknown Author'}</Text>
-          <View style={styles.tagsContainer}>
-            {/* Example Tags */}
-            <Text style={styles.tag}>Action</Text>
-            <Text style={styles.tag}>Comedy</Text>
-            <Text style={styles.tag}>Ongoing</Text>
+    <ScrollView style={[styles.container, themeStyles.container]}>
+      <View style={[styles.cardContainer, themeStyles.cardContainer]}>
+        <View style={styles.headerSection}>
+          <Image source={{ uri: getCoverImageUrl() }} style={styles.cover} />
+          <View style={styles.metadataSection}>
+            <Text style={styles.title}>{manga.attributes.title.en || 'No Title Available'}</Text>
+            <Text style={styles.author}>by {manga.attributes.author || 'Unknown Author'}</Text>
+            <View style={styles.tagsContainer}>
+              <Text style={styles.tag}>Action</Text>
+              <Text style={styles.tag}>Adventure</Text>
+              <Text style={styles.tag}>Fantasy</Text>
+            </View>
           </View>
-            <Text
-            style={styles.description}
-            numberOfLines={isExpanded ? 0 : 5} // Show all if expanded, otherwise limit to 5 lines
-          >
-            {manga.attributes.description.en || 'No Description Available'}
-          </Text>
-
-          <TouchableOpacity onPress={toggleDescription}>
-            <Text style={styles.toggleText}>
-              {isExpanded ? 'See Less' : 'See More'}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.actionButtonsContainer}>
-        <TouchableOpacity style={styles.actionButton}>
-          <Icon name="play-arrow" size={20} color="#fff" />
-          <Text style={styles.actionButtonText}>Resume</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <Icon name="favorite-border" size={20} color="#fff" />
-          <Text style={styles.actionButtonText}>Like</Text>
+        <Text
+          style={[styles.description, { textAlign: 'justify' }]}
+          numberOfLines={isExpanded ? 0 : 3}>
+          {manga.attributes.description.en || 'No Description Available'}
+        </Text>
+        <TouchableOpacity onPress={toggleDescription} style={styles.toggleButton}>
+          <Text style={styles.toggleText}>{isExpanded ? 'See Less' : 'See More'}</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.sectionTitle}>Chapters:</Text>
+     
       <FlatList
         data={chapters}
+        keyExtractor={(item, index) => `${item.id}-${page}-${index}`}
         scrollEnabled={false}
-        keyExtractor={(item, index) => `${item.id}-${page}-${index}`} // Ensure unique keys
         renderItem={({ item }) => (
-        
-        <TouchableOpacity
-        onPress={() => navigation.navigate('Reader', { 
-          chapters, 
-          initialChapter: item.id 
-        })}
-        >
-          <View style={styles.chapterCard}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('Reader', {
+                chapters,
+                initialChapter: item.id,
+              })
+            }>
+            <View style={styles.chapterCard}>
               <Text style={styles.chapterTitle}>
-                Chapter {Math.ceil(parseFloat(item.attributes.chapter))}: {item.attributes.title || 'No Title'}
+                Chapter {item.attributes.chapter}: {item.attributes.title || 'No Title'}
               </Text>
-              <Text style={styles.chapterDate}>
-               {item.attributes.publishAt ? formatDate(item.attributes.publishAt) : 'No Date'}
-              </Text>
-          </View>
-
+            </View>
           </TouchableOpacity>
         )}
         ListFooterComponent={
           loading ? (
             <Text style={styles.loadingText}>Loading...</Text>
-          ) : hasMoreChapters ? ( // Only show the button if there are more chapters
+          ) : hasMoreChapters ? (
             <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore}>
               <Text style={styles.loadMoreText}>Load More</Text>
             </TouchableOpacity>
@@ -152,65 +127,88 @@ const MangaDetails = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1e1e1e', padding: 10 },
-  headerSection: { flexDirection: 'row', marginBottom: 20 },
-  cover: { width: 120, height: 180, borderRadius: 5, marginRight: 10 },
+  container: { flex: 1, backgroundColor: '#1e1e1e', padding: 16 },
+  light: {
+    container: {
+      backgroundColor: '#fff',
+    },
+   cardContainer:{
+    backgroundColor: '#2A2A2A',
+    borderWidth: 3
+   }
+  },
+  dark: {
+    container: {
+      backgroundColor: '#333',
+    },
+   
+  },
+  cardContainer: {
+    borderRadius: 15,
+    padding: 16,
+    marginBottom: 16,
+  },
+  headerSection: { flexDirection: 'row', marginBottom: 16 },
+  cover: { width: 120, height: 180, borderRadius: 10, marginRight: 16 },
   metadataSection: { flex: 1 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  author: { fontSize: 16, color: '#bbb', marginBottom: 5 },
-  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
+  title: {
+    fontFamily: 'Poppins-Bold',
+    fontSize: 20, 
+    color: '#FFFFFF', 
+    marginBottom: 8 
+  },
+  author: { 
+    fontFamily: 'Poppins-Light',
+    fontSize: 14, 
+    color: '#CCCCCC', 
+    marginBottom: 8 },
+  tagsContainer: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap' },
   tag: {
-    backgroundColor: '#333',
-    color: '#fff',
-    padding: 5,
-    borderRadius: 5,
-    marginRight: 5,
+    fontFamily: 'Poppins-Light',
+    backgroundColor: '#3A3A3A',
+    color: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     fontSize: 12,
+    marginRight: 8,
+    marginBottom: 8,
   },
-  description: { fontSize: 14, color: '#ddd',},
-  toggleText: {
-    color: '#fff', // Button color for toggling
-    fontSize: 14,
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
+  description: { 
+    fontFamily: 'Poppins-Light',
+    fontSize: 14, 
+    color: '#CCCCCC', 
+    marginBottom: 8 },
+  toggleButton: { alignSelf: 'flex-start' },
+  toggleText: { fontFamily: 'Poppins-Light', color: '#FFFFFF', fontSize: 14 },
   actionButton: {
-    flexDirection: 'row',
+    backgroundColor: '#FF6F61',
+    borderRadius: 10,
+    paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#333',
-    padding: 10,
-    borderRadius: 5,
+    marginBottom: 16,
   },
-  actionButtonText: { color: '#fff', marginLeft: 5 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 10 },
+  actionButtonText: { fontFamily: 'Poppins-Light', color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   chapterCard: {
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    backgroundColor: '#292929',
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: '#333333',
+    padding: 12,
+    borderRadius: 10,
     marginBottom: 10,
   },
-  chapterTitle: { fontSize: 16, color: '#fff' },
-  chapterDate: { fontSize: 12, color: '#aaa' },
+  chapterTitle: { fontFamily: 'Poppins-Light',
+    fontSize: 14, color: '#FFFFFF' },
   loadMoreButton: {
-    backgroundColor: '#444',
+    backgroundColor: '#5b2e99',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 25,
   },
-  loadMoreText: { color: '#fff' },
-  noMoreChaptersText: { 
-    color: '#aaa', 
-    textAlign: 'center', 
-    padding: 10,
-    marginBottom: 15,
-  },
-  loadingText: { textAlign: 'center', color: '#aaa' },
+  loadMoreText: { color: '#FFFFFF' },
+  noMoreChaptersText: { color: '#AAAAAA', textAlign: 'center', marginBottom: 16 },
+  loadingText: { color: '#AAAAAA', textAlign: 'center', marginBottom: 25 },
 });
 
 export default MangaDetails;

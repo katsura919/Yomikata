@@ -2,7 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { ThemeProvider } from './screens/themes/themeContext'; // Keep ThemeProvider
+import { ThemeProvider } from './screens/context/themeContext'; 
+import { FontProvider } from './screens/context/fontContext';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import Ionicons
 
 // Import Screens
@@ -35,13 +36,13 @@ function MyTabs() {
           }
 
           // Return Ionicons icon
-          return <Ionicons name={iconName} size={28} color={color} />;
+          return <Ionicons name={iconName} size={20} color={color} />;
         },
         tabBarShowLabel: false, // Hide labels
         tabBarStyle: {
-          paddingTop: 10,
+          paddingTop: 5,
           backgroundColor: '#5b2e99',
-          height: 60,
+          height: 50,
           paddingBottom: 2,
           elevation: 10,
           shadowOpacity: 0.1,
@@ -51,7 +52,7 @@ function MyTabs() {
           marginHorizontal: 50,
           left: 0,
           right: 0,
-          bottom: 50,
+          bottom: 20,
           borderTopWidth: 0,
           borderRadius: 60,
         },
@@ -71,13 +72,15 @@ function MyTabs() {
 const App = () => {
   return (
     <NavigationContainer>
-      <ThemeProvider> 
+      <ThemeProvider>
+      <FontProvider>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="MainTabs" component={MyTabs} />
           <Stack.Screen name="Details" component={MangaDetails} />
           <Stack.Screen name="Reader" component={Reader} />
           <Stack.Screen name="SearchResults" component={SearchResults} />
         </Stack.Navigator>
+      </FontProvider>  
       </ThemeProvider>
     </NavigationContainer>
   );

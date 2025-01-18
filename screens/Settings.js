@@ -1,19 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect }  from 'react';
 import { View, Text, StyleSheet, Image, Switch } from 'react-native';
-import { useTheme } from './themes/themeContext'; // Ensure this is the correct path
+import { useTheme } from './context/themeContext'; 
+
 
 const Settings = () => {
-  const { isDarkMode, toggleTheme } = useTheme(); // Use context for theme management
-  
-  // Dynamically choose theme styles based on current mode
+  const { isDarkMode, toggleTheme } = useTheme(); 
+
+
   const themeStyles = isDarkMode ? styles.dark : styles.light;
+
 
   return (
     <View style={[styles.container, themeStyles.container]}>
       {/* App Logo */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/app-logo.png')} // Ensure path to image is correct
+          source={require('../assets/app-logo.png')} 
           style={styles.logo}
           resizeMode="contain"
         />
@@ -45,25 +47,28 @@ const styles = StyleSheet.create({
       backgroundColor: '#fff',
     },
     switchLabel: {
+      fontFamily: 'Poppins-Light',
       color: '#000',
     },
     appTitle: {
-      color: '#000', // Light mode color for title
-      fontSize: 25,
-      fontWeight: 'bold',
+      fontFamily: 'Poppins-Bold',
+      color: '#333', // Light mode color for title
+      fontSize: 30,
     },
   },
   dark: {
     container: {
-      backgroundColor: '#333',
+      backgroundColor: '#1e1e1e',
     },
     switchLabel: {
+      fontFamily: 'Poppins-Light',
       color: '#fff',
     },
     appTitle: {
+      fontFamily: 'Poppins-Bold',
       color: '#fff', // Dark mode color for title
-      fontSize: 25,
-      fontWeight: 'bold',
+      fontSize: 30,
+     
     },
   },
   logoContainer: {

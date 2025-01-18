@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, TextInput, FlatList, TouchableOpacity, Text, Image, StyleSheet, Animated } from 'react-native';
-import { useTheme } from './themes/themeContext';
+import { useTheme } from './context/themeContext';
 import { searchManga } from './api/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Search = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const { isDarkMode } = useTheme();
+  const flatListRef = useRef(null); // Reference to the FlatList
 
   const themeStyles = isDarkMode ? styles.dark : styles.light;
 
@@ -30,8 +32,22 @@ const Search = ({ navigation }) => {
     return null;
   };
 
+  // Reset FlatList scroll position when the screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      if (flatListRef.current) {
+        flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+      }
+    }, [])
+  );
+
   return (
     <View style={[styles.container, themeStyles.container]}>
+      <View style={styles.header}>
+        <View>
+          <Text style={themeStyles.headerText}>Search</Text>
+        </View>
+      </View>
       <Animated.View style={[styles.searchBar, themeStyles.searchBar]}>
         <TextInput
           style={styles.input}
@@ -43,6 +59,7 @@ const Search = ({ navigation }) => {
         />
       </Animated.View>
       <FlatList
+        ref={flatListRef} // Attach the FlatList to the ref
         data={searchResults}
         keyExtractor={(item) => item.id}
         numColumns={2}
@@ -66,15 +83,21 @@ const Search = ({ navigation }) => {
   );
 };
 
+// Styles remain the same as your original code
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    paddingBottom:  80,
+    paddingBottom: 40,
+  },
+  header: {
+    height: 40,
+    paddingLeft: 10,
+    backgroundColor: '#5b2e99',
+    justifyContent: 'center',
+    marginBottom: 10
   },
   searchBar: {
-    marginTop: 30,
-    marginBottom: 15,
+    marginBottom: 10,
     borderRadius: 5,
     overflow: 'hidden',
     paddingHorizontal: 10,
@@ -90,7 +113,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     color: '#333',
-    elevation: 10, // For shadow on Android
+    elevation: 10,
     borderWidth: 1,
   },
   grid: {
@@ -100,15 +123,12 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 5,
     alignItems: 'center',
-    backgroundColor: '#5b2e99',
+    backgroundColor: '#2A2A2A',
     borderRadius: 15,
     overflow: 'hidden',
     marginBottom: 20,
     transform: [{ scale: 1 }],
-    transition: 'transform 0.2s', // Adds animation on hover
-  },
-  cardHover: {
-    transform: [{ scale: 1.05 }],
+    transition: 'transform 0.2s',
   },
   cover: {
     width: '100%',
@@ -129,13 +149,23 @@ const styles = StyleSheet.create({
       backgroundColor: '#fff',
       borderColor: '#5b2e99',
     },
+    headerText: {
+      fontFamily: 'Poppins-Bold',
+      color: '#fff',
+      fontSize: 20,
+    },
   },
   dark: {
     container: {
-      backgroundColor: '#333',
+      backgroundColor: '#1e1e1e',
     },
     searchBar: {
       borderColor: '#5b2e99',
+    },
+    headerText: {
+      fontFamily: 'Poppins-Bold',
+      color: '#fff',
+      fontSize: 20,
     },
   },
 });
