@@ -8,7 +8,7 @@ export const fetchPopularMangas = async () => {
   try {
     const response = await axios.get(`${BASE_URL}/manga`, {
       params: {
-        limit: 51,
+        limit: 50,
         includes: ['cover_art'],
         order: { rating: 'desc' },
       },

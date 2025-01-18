@@ -84,6 +84,7 @@ const Home = ({ navigation }) => {
       <Slider 
         items={popularMangas} 
         getImageUrl={getCoverImageUrl} 
+        navigation={navigation}
       />
       <FlatList
         ListHeaderComponent={
@@ -101,7 +102,7 @@ const Home = ({ navigation }) => {
       <FlatList
         data={popularMangas}
         keyExtractor={(item) => item.id}
-        numColumns={3}
+        numColumns={2}
         contentContainerStyle={styles.grid}
         scrollEnabled={false}
         renderItem={({ item }) => {
@@ -127,6 +128,7 @@ const Home = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom:  80,
   },
   light: {
     container: {
@@ -141,16 +143,19 @@ const styles = StyleSheet.create({
 
 
   sectionContainer: {
-    marginVertical: 10,
+    marginTop: 10,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
     marginHorizontal: 10,
+ 
+
   },
   horizontalList: {
     paddingHorizontal: 10,
+    marginTop: 10,
     
   },
   card: {
@@ -159,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#5b2e99',
     borderRadius: 8,
     overflow: 'hidden',
-    marginBottom: 20,
+ 
   
   },
   cover: {
@@ -168,7 +173,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     padding: 5,
-    fontSize: 12,
+    fontSize: 15,
     color: '#fff',
     textAlign: 'center',
   },
@@ -193,12 +198,12 @@ const styles = StyleSheet.create({
   },
   gridcover: {
     width: "100%",
-    height: 150,
+    height: 240,
     borderRadius: 5,
   },
   gridTitle: {
     padding: 5,
-    fontSize: 12,
+    fontSize: 15,
     color: '#fff',
     textAlign: 'center',
   },

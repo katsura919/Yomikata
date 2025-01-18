@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Image, Text, StyleSheet, ImageBackground } from 'react-native';
+import { View, Image, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import PagerView from 'react-native-pager-view';
 
-const Slider = ({ items, getImageUrl }) => {
+const Slider = ({ items, getImageUrl, navigation }) => {
   const [currentPage, setCurrentPage] = useState(0);
 
   return (
@@ -19,11 +19,15 @@ const Slider = ({ items, getImageUrl }) => {
         >
           {items.slice(0, 8).map((item, index) => (
             <View style={styles.pagerItem} key={index}>
-              <Image
-                source={{ uri: getImageUrl(item) }}
-                style={styles.pagerImage}
-                resizeMode="contain"
-              />
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Details', { manga: item })}
+              >
+                <Image
+                  source={{ uri: getImageUrl(item) }}
+                  style={styles.pagerImage}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
             </View>
           ))}
         </PagerView>
@@ -31,10 +35,7 @@ const Slider = ({ items, getImageUrl }) => {
           {items.slice(0, 8).map((_, index) => (
             <View
               key={index}
-              style={[
-                styles.dot,
-                currentPage === index && styles.activeDot,
-              ]}
+              style={[styles.dot, currentPage === index && styles.activeDot]}
             />
           ))}
         </View>
@@ -55,33 +56,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pagerView: {
-    marginTop: 70,
-    height: 300,
+    height: 380,
     width: '100%',
-   
+    
   },
   pagerItem: {
     justifyContent: 'center',
     alignItems: 'center',
-  
-   
   },
   pagerImage: {
-    width: 200,
-    height: 285,
-    borderRadius: 20, 
-  },
-  pagerText: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFF',
+    marginTop: 60,
+    width: 210,
+    height: 300,
+    borderRadius: 20,
+   
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
   },
   dot: {
     width: 10,
