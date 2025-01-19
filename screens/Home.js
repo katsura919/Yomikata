@@ -58,11 +58,11 @@ const Home = ({ navigation }) => {
 
   const renderMangaList = (data, title, loading) => (
     <View style={styles.sectionContainer}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10,  }}>
       <LottieView
             style={{
-              width: 20,
-              height: 20,
+              width: 25,
+              height: 25,
             }}
               source={require('../assets/icons/update.json')}
               autoPlay
@@ -118,14 +118,14 @@ const Home = ({ navigation }) => {
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10,paddingHorizontal: 10,  }}>
       <LottieView
             style={{
-              width: 20,
-              height: 20,
+              width: 25,
+              height: 25,
             }}
               source={require('../assets/icons/hot.json')}
               autoPlay
               loop
             />
-        <Text style={themeStyles.popularText}>Popular</Text>
+        <Text style={themeStyles.popularText}>Popular Manga</Text>
       </View>
       <View style={styles.popularContainer}>
         {loadingPopular ? (
@@ -179,10 +179,12 @@ const styles = StyleSheet.create({
     },
     popularText: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 15,
+      fontSize: 16,
       color: '#333',
       marginLeft: 5,
-      marginTop: 5,
+      marginTop: 3,
+      width:500,
+  
     },
     cardTitle: {
       fontFamily: 'Poppins-Light',
@@ -211,10 +213,12 @@ const styles = StyleSheet.create({
     },
     popularText: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 14,
+      fontSize: 16,
       color: '#fff',
-      marginLeft: 5,
-      marginTop: 5,
+      marginLeft: 10,
+      marginTop: 3,
+      width:500,
+     
     },
     cardTitle: {
       fontFamily: 'Poppins-Light',
@@ -234,6 +238,7 @@ const styles = StyleSheet.create({
   sectionContainer: {
     marginTop: 10,
     marginBottom: 30,
+  
   },
   horizontalList: {
     paddingHorizontal: 10,
@@ -258,7 +263,7 @@ const styles = StyleSheet.create({
   },
   gridcard: {
     flex: 1,
-    margin: 5,
+    margin: 10,
     alignItems: 'center',
     borderRadius: 8,
     overflow: 'hidden',
