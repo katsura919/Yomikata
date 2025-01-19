@@ -115,7 +115,7 @@ const Home = ({ navigation }) => {
       <Slider items={popularMangas} getImageUrl={getCoverImageUrl} navigation={navigation} />
       {renderMangaList(updatedMangas, 'Updated Manga', loadingUpdated)}
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10,paddingHorizontal: 10,  }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10  }}>
       <LottieView
             style={{
               width: 25,
