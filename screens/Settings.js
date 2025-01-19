@@ -48,11 +48,11 @@ const styles = StyleSheet.create({
     },
     switchLabel: {
       fontFamily: 'Poppins-Light',
-      color: '#000',
+      color: '#454545',
     },
     appTitle: {
-      fontFamily: 'Poppins-Bold',
-      color: '#333', // Light mode color for title
+      fontFamily: 'Knewave-Regular',
+      color: '#454545', // Light mode color for title
       fontSize: 30,
     },
   },
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
       color: '#fff',
     },
     appTitle: {
-      fontFamily: 'Poppins-Bold',
+      fontFamily: 'Knewave-Regular',
       color: '#fff', // Dark mode color for title
       fontSize: 30,
      

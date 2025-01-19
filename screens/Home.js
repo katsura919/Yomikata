@@ -1,45 +1,51 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, TextInput, Image, Text, TouchableOpacity, FlatList, StyleSheet, StatusBar, ScrollView } from 'react-native';
-import { fetchPopularMangas, fetchUpdatedChapters, searchManga } from './api/api';  
-import {lightTheme, darkTheme} from './context/themes';
+import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet, StatusBar, ScrollView, ActivityIndicator } from 'react-native';
+import { fetchPopularMangas, fetchUpdatedChapters } from './api/api';
+import { lightTheme, darkTheme } from './context/themes';
 import { useTheme } from './context/themeContext';
 import Slider from './components/Slider';
 
 const Home = ({ navigation }) => {
   const [popularMangas, setPopularMangas] = useState([]);
   const [updatedMangas, setUpdatedMangas] = useState([]);
-  const {isDarkMode, toggleTheme } = useTheme(); 
+  const [loadingPopular, setLoadingPopular] = useState(true);
+  const [loadingUpdated, setLoadingUpdated] = useState(true);
+  const { isDarkMode } = useTheme();
   const scrollViewRef = useRef(null);
-
   const themeStyles = isDarkMode ? styles.dark : styles.light;
 
-
   useEffect(() => {
-   
     const fetchData = async () => {
       try {
+        setLoadingPopular(true);
+        setLoadingUpdated(true);
+
         const popularMangasData = await fetchPopularMangas();
         setPopularMangas(popularMangasData);
+        setLoadingPopular(false);
 
         const updatedMangasData = await fetchUpdatedChapters();
         setUpdatedMangas(updatedMangasData);
+        setLoadingUpdated(false);
       } catch (error) {
         console.error('Error fetching data:', error);
+        setLoadingPopular(false);
+        setLoadingUpdated(false);
       }
     };
 
     fetchData();
   }, []);
 
-   // Reset FlatList scroll position when the screen is focused
-   useFocusEffect(
+  useFocusEffect(
     React.useCallback(() => {
       if (scrollViewRef.current) {
         scrollViewRef.current.scrollTo({ y: 0, animated: false });
       }
     }, [])
   );
+
   const getCoverImageUrl = (manga) => {
     if (manga && manga.relationships) {
       const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
@@ -49,93 +55,86 @@ const Home = ({ navigation }) => {
     }
     return null;
   };
-  
 
-  const renderMangaList = (data, title) => (
+  const renderMangaList = (data, title, loading) => (
     <View style={styles.sectionContainer}>
-      <Text style={themeStyles.popularText}>{title}</Text>
-      <FlatList
-        
-        data={data}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.horizontalList}
-        scrollEnabled={data.length > 0}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('Details', { manga: item })}
-          >
-            <Image
-              source={{ uri: getCoverImageUrl(item) }}
-              style={styles.cover}
-              resizeMode="cover"
-            />
-            <Text style={styles.cardTitle} numberOfLines={2}>
-              {item.attributes.title.en || 'No Title'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={themeStyles.popularText}>{title}</Text>
+      </View>
+      {loading ? (
+        <ActivityIndicator size="large" color={isDarkMode ? '#fff' : '#000'} style={styles.spinner} />
+      ) : (
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+          scrollEnabled={data.length > 0}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('Details', { manga: item })}
+            >
+              <Image
+                source={{ uri: getCoverImageUrl(item) }}
+                style={styles.cover}
+                resizeMode="cover"
+              />
+              <Text style={themeStyles.cardTitle} numberOfLines={2}>
+                {item.attributes.title.en || 'No Title'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 
-
- 
   return (
-    <ScrollView 
-      ref={scrollViewRef}
-      style={[styles.container, themeStyles.container]}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"}   backgroundColor={isDarkMode ? "#333" : "#fff"} 
+    <ScrollView ref={scrollViewRef} style={[styles.container, themeStyles.container]}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={isDarkMode ? '#1e1e1e' : '#fff'}
       />
       <View style={styles.header}>
         <View>
-         <Text style={themeStyles.headerText}>Home</Text>
+          <Text style={themeStyles.headerText}>Yomikata</Text>
         </View>
       </View>
-   
 
-      <Slider 
-        items={popularMangas} 
-        getImageUrl={getCoverImageUrl} 
-        navigation={navigation}
-      />
-      <FlatList
-        ListHeaderComponent={
-          <>
-            {renderMangaList(updatedMangas, 'Updated Manga')}
-          </>
-        }
-        contentContainerStyle={styles.listContainer}
-        scrollEnabled={false}
-      />
+      <Slider items={popularMangas} getImageUrl={getCoverImageUrl} navigation={navigation} />
+      {renderMangaList(updatedMangas, 'Updated Manga', loadingUpdated)}
 
-      <Text style={themeStyles.popularText}>Popular Manga</Text>
-
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        <Text style={themeStyles.popularText}>Popular</Text>
+      </View>
       <View style={styles.popularContainer}>
-      <FlatList
-       
-        data={popularMangas}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.grid}
-        scrollEnabled={false}
-        renderItem={({ item }) => {
-          const imageUrl = getCoverImageUrl(item);
-          return (
-            <TouchableOpacity
-              style={styles.gridcard}
-              onPress={() => navigation.navigate('Details', { manga: item })}
-            >
-              {imageUrl && <Image source={{ uri: imageUrl }} style={styles.gridcover} />}
-              <Text style={styles.gridTitle} numberOfLines={2}>
-                {item.attributes.title.en || 'No Title Available'}
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
-      />
+        {loadingPopular ? (
+          <ActivityIndicator size="large" color={isDarkMode ? '#fff' : '#000'} style={styles.spinner} />
+        ) : (
+          <FlatList
+            data={popularMangas}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.grid}
+            scrollEnabled={false}
+            renderItem={({ item }) => {
+              const imageUrl = getCoverImageUrl(item);
+              return (
+                <TouchableOpacity
+                  style={styles.gridcard}
+                  onPress={() => navigation.navigate('Details', { manga: item })}
+                >
+                  {imageUrl && <Image source={{ uri: imageUrl }} style={styles.gridcover} />}
+                  <Text style={themeStyles.gridTitle} numberOfLines={2}>
+                    {item.attributes.title.en || 'No Title Available'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        )}
       </View>
     </ScrollView>
   );
@@ -143,81 +142,94 @@ const Home = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingBottom: 50,
+    flex: 1
   },
-  header:{
+  header: {
     height: 40,
     paddingLeft: 10,
-    backgroundColor: '#5b2e99',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   light: {
     container: {
       backgroundColor: '#fff',
     },
     headerText: {
-      fontFamily: 'Poppins-Bold',
-      color: '#fff', // Dark mode color for title
-      fontSize: 20,
+      fontFamily: 'Knewave-Regular',
+      color: '#454545',
+      fontSize: 27,
+      marginLeft: 5,
     },
     popularText: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 18,
+      fontSize: 15,
       color: '#333',
-      marginHorizontal: 10,
     },
-    
+    cardTitle: {
+      fontFamily: 'Poppins-Light',
+      padding: 5,
+      fontSize: 12,
+      color: '#333',
+      textAlign: 'center',
+    },
+    gridTitle: {
+      fontFamily: 'Poppins-Light',
+      padding: 5,
+      fontSize: 12,
+      color: '#333',
+      textAlign: 'center',
+    },
   },
   dark: {
     container: {
       backgroundColor: '#1e1e1e',
     },
     headerText: {
-      fontFamily: 'Poppins-Bold',
-      color: '#fff', // Dark mode color for title
-      fontSize: 20,
+      fontFamily: 'Knewave-Regular',
+      color: '#fff',
+      fontSize: 27,
+      marginLeft: 5,
     },
     popularText: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 18,
+      fontSize: 14,
       color: '#fff',
-      marginHorizontal: 10,
+    },
+    cardTitle: {
+      fontFamily: 'Poppins-Light',
+      padding: 5,
+      fontSize: 12,
+      color: '#fff',
+      textAlign: 'center',
+    },
+    gridTitle: {
+      fontFamily: 'Poppins-Light',
+      padding: 5,
+      fontSize: 12,
+      color: '#fff',
+      textAlign: 'center',
     },
   },
-
   sectionContainer: {
     marginTop: 10,
+    marginBottom: 30,
   },
   horizontalList: {
     paddingHorizontal: 10,
     marginTop: 10,
-    
   },
   card: {
     width: 120,
     marginRight: 10,
-    backgroundColor: '#2A2A2A',
     borderRadius: 8,
     overflow: 'hidden',
   },
   cover: {
     width: '100%',
-    height: 180,
+    height: 200,
+    borderRadius: 5,
   },
-  cardTitle: {
-    fontFamily: 'Poppins-Light',
-    padding: 5,
-    fontSize: 12,
-    color: '#fff',
-    textAlign: 'center',
-  },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  popularContainer:{
-    marginHorizontal: 5,
-    marginBottom: 20,
+  spinner: {
+    marginVertical: 20,
   },
   grid: {
     paddingBottom: 20,
@@ -226,41 +238,18 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 5,
     alignItems: 'center',
-    backgroundColor: '#2A2A2A',
     borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 10,
   },
   gridcover: {
-    width: "100%",
+    width: '100%',
     height: 240,
     borderRadius: 5,
   },
-  gridTitle: {
-    fontFamily: 'Poppins-Light',
-    padding: 5,
-    fontSize: 12,
-    color: '#fff',
-    textAlign: 'center',
-  },
-  circleButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 35, // Half the width/height to make it a perfect circle
-    backgroundColor: '#5b2e99',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  settingsIcon: {
-    width: 20,
-    height: 20, // Adjust size to fit nicely within the circle
-    tintColor: '#FFFFFF', // Optional: Adjust icon color if needed
-  },
+  popularContainer:{
+    marginBottom: 40
+  }
 });
 
 export default Home;

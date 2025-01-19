@@ -7,6 +7,7 @@ export const FontProvider = ({ children }) => {
   const [fontsLoaded] = useFonts({
     'Poppins-Bold': require('../../assets/fonts/Poppins-Bold.ttf'),
     'Poppins-Light': require('../../assets/fonts/Poppins-Light.ttf'),
+    'Knewave-Regular': require('../../assets/fonts/Knewave-Regular.ttf'),
   });
 
   return (

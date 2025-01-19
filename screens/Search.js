@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, TextInput, FlatList, TouchableOpacity, Text, Image, StyleSheet, Animated } from 'react-native';
+import { View, TextInput, FlatList, TouchableOpacity, Text, Image, StyleSheet, Animated, ActivityIndicator } from 'react-native';
 import { useTheme } from './context/themeContext';
 import { searchManga } from './api/api';
 import { useFocusEffect } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 const Search = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false); // State to track loading status
   const { isDarkMode } = useTheme();
   const flatListRef = useRef(null); // Reference to the FlatList
 
@@ -14,11 +15,15 @@ const Search = ({ navigation }) => {
 
   const handleSearch = async () => {
     if (!query.trim()) return;
+
+    setLoading(true); // Set loading state to true when search starts
     try {
       const results = await searchManga(query);
       setSearchResults(results);
     } catch (error) {
       console.error('Error searching for manga:', error);
+    } finally {
+      setLoading(false); // Set loading state to false after search completes
     }
   };
 
@@ -43,42 +48,51 @@ const Search = ({ navigation }) => {
 
   return (
     <View style={[styles.container, themeStyles.container]}>
-      <View style={styles.header}>
-        <View>
-          <Text style={themeStyles.headerText}>Search</Text>
-        </View>
-      </View>
       <Animated.View style={[styles.searchBar, themeStyles.searchBar]}>
         <TextInput
-          style={styles.input}
-          placeholder="Search manga..."
+          style={themeStyles.input}
+          placeholder="Type to search manga..."
           placeholderTextColor={isDarkMode ? '#ccc' : '#666'}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={handleSearch}
         />
       </Animated.View>
-      <FlatList
-        ref={flatListRef} // Attach the FlatList to the ref
-        data={searchResults}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.grid}
-        renderItem={({ item }) => {
-          const imageUrl = getCoverImageUrl(item);
-          return (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => navigation.navigate('Details', { manga: item })}
-            >
-              {imageUrl && <Image source={{ uri: imageUrl }} style={styles.cover} />}
-              <Text style={styles.title} numberOfLines={2}>
-                {item.attributes.title.en || 'No Title Available'}
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
-      />
+
+      {/* Show a spinner while loading */}
+      {loading ? (
+        <ActivityIndicator size="large" color={isDarkMode ? '#fff' : '#000'} style={styles.spinner} />
+      ) : (
+        <>
+          {/* Show No Results Found message if there are no search results */}
+          {searchResults.length === 0 && query.trim() !== '' && (
+            <Text style={themeStyles.noResultsText}>No Results Found</Text>
+          )}
+
+          {/* Render FlatList of search results */}
+          <FlatList
+            ref={flatListRef} // Attach the FlatList to the ref
+            data={searchResults}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.grid}
+            renderItem={({ item }) => {
+              const imageUrl = getCoverImageUrl(item);
+              return (
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => navigation.navigate('Details', { manga: item })}
+                >
+                  {imageUrl && <Image source={{ uri: imageUrl }} style={styles.cover} />}
+                  <Text style={themeStyles.title} numberOfLines={2}>
+                    {item.attributes.title.en || 'No Title Available'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </>
+      )}
     </View>
   );
 };
@@ -88,33 +102,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingBottom: 40,
-  },
-  header: {
-    height: 40,
-    paddingLeft: 10,
-    backgroundColor: '#5b2e99',
-    justifyContent: 'center',
-    marginBottom: 10
+    padding: 5,
   },
   searchBar: {
     marginBottom: 10,
-    borderRadius: 5,
     overflow: 'hidden',
     paddingHorizontal: 10,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
-  },
-  input: {
-    height: 45,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    color: '#333',
-    elevation: 10,
-    borderWidth: 1,
+    borderBottomWidth: 2,
+    marginBottom: 20,
   },
   grid: {
     paddingBottom: 20,
@@ -123,7 +122,6 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 5,
     alignItems: 'center',
-    backgroundColor: '#2A2A2A',
     borderRadius: 15,
     overflow: 'hidden',
     marginBottom: 20,
@@ -135,12 +133,10 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 10,
   },
-  title: {
-    padding: 5,
-    fontSize: 15,
-    color: '#fff',
-    textAlign: 'center',
+  spinner: {
+    marginTop: 20,
   },
+
   light: {
     container: {
       backgroundColor: '#fff',
@@ -154,6 +150,28 @@ const styles = StyleSheet.create({
       color: '#fff',
       fontSize: 20,
     },
+    title: {
+      padding: 5,
+      fontSize: 15,
+      color: '#333',
+      textAlign: 'center',
+    },
+    input: {
+      height: 45,
+      paddingHorizontal: 5,
+      fontSize: 14,
+      backgroundColor: '#fff',
+      borderRadius: 20,
+      color: '#333',
+      fontFamily: 'Poppins-Light',
+    },
+    noResultsText: {
+      fontFamily: 'Poppins-Light',
+      fontSize: 15,
+      textAlign: 'center',
+      marginTop: 20,
+      color: '#888',
+    },
   },
   dark: {
     container: {
@@ -166,6 +184,27 @@ const styles = StyleSheet.create({
       fontFamily: 'Poppins-Bold',
       color: '#fff',
       fontSize: 20,
+    },
+    title: {
+      padding: 5,
+      fontSize: 15,
+      color: '#fff',
+      textAlign: 'center',
+    },
+    input: {
+      height: 45,
+      paddingHorizontal: 0,
+      fontSize: 14,
+      borderRadius: 20,
+      color: '#fff',
+      fontFamily: 'Poppins-Light',
+    },
+    noResultsText: {
+      fontFamily: 'Poppins-Light',
+      fontSize: 15,
+      textAlign: 'center',
+      marginTop: 20,
+      color: '#888',
     },
   },
 });

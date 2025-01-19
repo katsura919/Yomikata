@@ -70,23 +70,23 @@ const MangaDetails = ({ route, navigation }) => {
         <View style={styles.headerSection}>
           <Image source={{ uri: getCoverImageUrl() }} style={styles.cover} />
           <View style={styles.metadataSection}>
-            <Text style={styles.title}>{manga.attributes.title.en || 'No Title Available'}</Text>
-            <Text style={styles.author}>by {manga.attributes.author || 'Unknown Author'}</Text>
+            <Text style={themeStyles.title}>{manga.attributes.title.en || 'No Title Available'}</Text>
+            <Text style={themeStyles.author}>by {manga.attributes.author || 'Unknown Author'}</Text>
             <View style={styles.tagsContainer}>
-              <Text style={styles.tag}>Action</Text>
-              <Text style={styles.tag}>Adventure</Text>
-              <Text style={styles.tag}>Fantasy</Text>
+              <Text style={themeStyles.tag}>Action</Text>
+              <Text style={themeStyles.tag}>Adventure</Text>
+              <Text style={themeStyles.tag}>Fantasy</Text>
             </View>
           </View>
         </View>
 
         <Text
-          style={[styles.description, { textAlign: 'justify' }]}
+          style={[themeStyles.description, { textAlign: 'justify' }]}
           numberOfLines={isExpanded ? 0 : 3}>
           {manga.attributes.description.en || 'No Description Available'}
         </Text>
         <TouchableOpacity onPress={toggleDescription} style={styles.toggleButton}>
-          <Text style={styles.toggleText}>{isExpanded ? 'See Less' : 'See More'}</Text>
+          <Text style={themeStyles.toggleText}>{isExpanded ? 'See Less' : 'See More'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -103,8 +103,8 @@ const MangaDetails = ({ route, navigation }) => {
                 initialChapter: item.id,
               })
             }>
-            <View style={styles.chapterCard}>
-              <Text style={styles.chapterTitle}>
+            <View style={themeStyles.chapterCard}>
+              <Text style={themeStyles.chapterTitle}>
                 Chapter {item.attributes.chapter}: {item.attributes.title || 'No Title'}
               </Text>
             </View>
@@ -127,21 +127,102 @@ const MangaDetails = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1e1e1e', padding: 16 },
+  container: { flex: 1, backgroundColor: '#1e1e1e', padding: 5 },
   light: {
     container: {
       backgroundColor: '#fff',
     },
-   cardContainer:{
-    backgroundColor: '#2A2A2A',
-    borderWidth: 3
-   }
+    title: {
+      fontFamily: 'Poppins-Bold',
+      fontSize: 20, 
+      color: '#333', 
+      marginBottom: 8 
+    },
+    author: { 
+      fontFamily: 'Poppins-Light',
+      fontSize: 14, 
+      color: '#333', 
+      marginBottom: 8 
+    },
+    tag: {
+      fontFamily: 'Poppins-Light',
+      color: '#333',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      fontSize: 12,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    description: { 
+      fontFamily: 'Poppins-Light',
+      fontSize: 12, 
+      color: '#333', 
+      marginBottom: 8 
+    },
+    toggleText: { 
+      fontFamily: 'Poppins-Bold', 
+      color: '#333', 
+      fontSize: 12 
+    },
+    chapterCard: {
+      padding: 12,
+      borderRadius: 10,
+      marginBottom: 10,
+    },
+    chapterTitle: { 
+      fontFamily: 'Poppins-Bold',
+      fontSize: 13, 
+      color: '#454545' 
+    },
   },
   dark: {
     container: {
       backgroundColor: '#333',
     },
-   
+    title: {
+      fontFamily: 'Poppins-Bold',
+      fontSize: 20, 
+      color: '#fff', 
+      marginBottom: 8 
+    },
+    author: { 
+      fontFamily: 'Poppins-Light',
+      fontSize: 14, 
+      color: '#fff', 
+      marginBottom: 8 
+    },
+    tag: {
+      fontFamily: 'Poppins-Light',
+      color: '#fff',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      fontSize: 12,
+      marginRight: 8,
+      marginBottom: 8,
+    },
+    description: { 
+      fontFamily: 'Poppins-Light',
+      fontSize: 12, 
+      color: '#fff', 
+      marginBottom: 8 
+    },
+    toggleText: { 
+      fontFamily: 'Poppins-Bold', 
+      color: '#fff', 
+      fontSize: 12 
+    },
+    chapterCard: {
+      padding: 12,
+      borderRadius: 10,
+      marginBottom: 10,
+    },
+    chapterTitle: { 
+      fontFamily: 'Poppins-Bold',
+      fontSize: 13, 
+      color: '#fff' 
+    },
   },
   cardContainer: {
     borderRadius: 15,
@@ -157,32 +238,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', 
     marginBottom: 8 
   },
-  author: { 
-    fontFamily: 'Poppins-Light',
-    fontSize: 14, 
-    color: '#CCCCCC', 
-    marginBottom: 8 },
   tagsContainer: { 
     flexDirection: 'row', 
     flexWrap: 'wrap' },
-  tag: {
-    fontFamily: 'Poppins-Light',
-    backgroundColor: '#3A3A3A',
-    color: '#FFFFFF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    fontSize: 12,
-    marginRight: 8,
-    marginBottom: 8,
+  toggleButton: { 
+    alignSelf: 'flex-start' 
   },
-  description: { 
-    fontFamily: 'Poppins-Light',
-    fontSize: 14, 
-    color: '#CCCCCC', 
-    marginBottom: 8 },
-  toggleButton: { alignSelf: 'flex-start' },
-  toggleText: { fontFamily: 'Poppins-Light', color: '#FFFFFF', fontSize: 14 },
   actionButton: {
     backgroundColor: '#FF6F61',
     borderRadius: 10,
@@ -191,14 +252,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   actionButtonText: { fontFamily: 'Poppins-Light', color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  chapterCard: {
-    backgroundColor: '#333333',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  chapterTitle: { fontFamily: 'Poppins-Light',
-    fontSize: 14, color: '#FFFFFF' },
+
+
   loadMoreButton: {
     backgroundColor: '#5b2e99',
     padding: 10,

@@ -41,7 +41,7 @@ function MyTabs() {
         tabBarShowLabel: false, // Hide labels
         tabBarStyle: {
           paddingTop: 5,
-          backgroundColor: '#5b2e99',
+          backgroundColor: '#5b2f98',
           height: 50,
           paddingBottom: 2,
           elevation: 10,
@@ -52,7 +52,7 @@ function MyTabs() {
           marginHorizontal: 50,
           left: 0,
           right: 0,
-          bottom: 20,
+          bottom: 10,
           borderTopWidth: 0,
           borderRadius: 60,
         },
@@ -70,6 +70,7 @@ function MyTabs() {
 
 // Main App with Stack and Tabs
 const App = () => {
+ 
   return (
     <NavigationContainer>
       <ThemeProvider>

@@ -4,7 +4,7 @@ import axios from 'axios';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const Reader = ({ route }) => {
-  const { chapters, initialChapter } = route.params;  // Receive chapters and initial chapter ID
+  const { chapters, initialChapter } = route.params; // Receive chapters and initial chapter ID
   const [currentChapterIndex, setCurrentChapterIndex] = useState(
     chapters.findIndex((chapter) => chapter.id === initialChapter)
   );
@@ -19,7 +19,7 @@ const Reader = ({ route }) => {
       try {
         // Fetch the chapter data using the MangaDex 'at-home' endpoint
         const response = await axios.get(`https://api.mangadex.org/at-home/server/${currentChapter.id}`);
-        
+
         // If the request is successful, extract the page data
         const { baseUrl, chapter } = response.data;
 
@@ -29,15 +29,16 @@ const Reader = ({ route }) => {
         setPages(pageUrls);
 
         // Calculate and set the image dimensions for each page
-        const dimensions = await Promise.all(pageUrls.map(async (pageUrl) => {
-          const { width, height } = await new Promise((resolve) => {
-            Image.getSize(pageUrl, (width, height) => resolve({ width, height }));
-          });
-          return { width, height };
-        }));
+        const dimensions = await Promise.all(
+          pageUrls.map(async (pageUrl) => {
+            const { width, height } = await new Promise((resolve) => {
+              Image.getSize(pageUrl, (width, height) => resolve({ width, height }));
+            });
+            return { width, height };
+          })
+        );
 
         setImageDimensions(dimensions);
-
       } catch (error) {
         console.error('Error fetching chapter pages:', error);
       } finally {
@@ -51,22 +52,16 @@ const Reader = ({ route }) => {
   const goToNextChapter = () => {
     if (currentChapterIndex < chapters.length - 1) {
       setCurrentChapterIndex(currentChapterIndex + 1);
+      setLoading(true); // Reset loading state for the next chapter
     }
   };
 
   const goToPreviousChapter = () => {
     if (currentChapterIndex > 0) {
       setCurrentChapterIndex(currentChapterIndex - 1);
+      setLoading(true); // Reset loading state for the previous chapter
     }
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -78,7 +73,9 @@ const Reader = ({ route }) => {
           </Text>
         </TouchableOpacity>
 
-        <Text style={styles.chapterText}>Chapter {Math.ceil(parseFloat(currentChapter.attributes.chapter))}</Text>
+        <Text style={styles.chapterText}>
+          Chapter {Math.ceil(parseFloat(currentChapter.attributes.chapter))}
+        </Text>
 
         <TouchableOpacity onPress={goToNextChapter} disabled={currentChapterIndex === chapters.length - 1}>
           <Text style={[styles.navText, currentChapterIndex === chapters.length - 1 && styles.disabled]}>
@@ -89,14 +86,18 @@ const Reader = ({ route }) => {
 
       {/* Chapter Pages */}
       <ScrollView contentContainerStyle={styles.pageContainer}>
-        {pages.map((pageUrl, index) => (
-          <Image
-            key={index}
-            source={{ uri: pageUrl }}
-            resizeMode="contain" // "contain" ensures the image retains its aspect ratio
-            style={styles.pageImage} // Dynamically set the height
-          />
-        ))}
+        {loading ? (
+          <ActivityIndicator size="large" color="white" style={styles.spinner} />
+        ) : (
+          pages.map((pageUrl, index) => (
+            <Image
+              key={index}
+              source={{ uri: pageUrl }}
+              resizeMode="contain" // "contain" ensures the image retains its aspect ratio
+              style={styles.pageImage} // Dynamically set the height
+            />
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
   },
   chapterText: {
     fontFamily: 'Poppins-Bold',
-    fontSize: 18,
+    fontSize: 15,
     color: '#fff',
   },
   navBar: {
@@ -144,10 +145,9 @@ const styles = StyleSheet.create({
     height: 600,
     marginBottom: 10,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  spinner: {
+    marginTop: 20,
+    color: 'white'
   },
 });
 
