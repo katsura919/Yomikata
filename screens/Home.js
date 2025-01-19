@@ -5,7 +5,7 @@ import { fetchPopularMangas, fetchUpdatedChapters } from './api/api';
 import { lightTheme, darkTheme } from './context/themes';
 import { useTheme } from './context/themeContext';
 import Slider from './components/Slider';
-
+import LottieView from 'lottie-react-native';
 const Home = ({ navigation }) => {
   const [popularMangas, setPopularMangas] = useState([]);
   const [updatedMangas, setUpdatedMangas] = useState([]);
@@ -14,7 +14,7 @@ const Home = ({ navigation }) => {
   const { isDarkMode } = useTheme();
   const scrollViewRef = useRef(null);
   const themeStyles = isDarkMode ? styles.dark : styles.light;
-
+  const animation = useRef<LottieView>(null);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,7 +58,16 @@ const Home = ({ navigation }) => {
 
   const renderMangaList = (data, title, loading) => (
     <View style={styles.sectionContainer}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, }}>
+      <LottieView
+            style={{
+              width: 20,
+              height: 20,
+            }}
+              source={require('../assets/icons/update.json')}
+              autoPlay
+              loop
+            />
         <Text style={themeStyles.popularText}>{title}</Text>
       </View>
       {loading ? (
@@ -106,7 +115,16 @@ const Home = ({ navigation }) => {
       <Slider items={popularMangas} getImageUrl={getCoverImageUrl} navigation={navigation} />
       {renderMangaList(updatedMangas, 'Updated Manga', loadingUpdated)}
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10,paddingHorizontal: 10,  }}>
+      <LottieView
+            style={{
+              width: 20,
+              height: 20,
+            }}
+              source={require('../assets/icons/hot.json')}
+              autoPlay
+              loop
+            />
         <Text style={themeStyles.popularText}>Popular</Text>
       </View>
       <View style={styles.popularContainer}>
@@ -163,6 +181,8 @@ const styles = StyleSheet.create({
       fontFamily: 'Poppins-Bold',
       fontSize: 15,
       color: '#333',
+      marginLeft: 5,
+      marginTop: 5,
     },
     cardTitle: {
       fontFamily: 'Poppins-Light',
@@ -193,6 +213,8 @@ const styles = StyleSheet.create({
       fontFamily: 'Poppins-Bold',
       fontSize: 14,
       color: '#fff',
+      marginLeft: 5,
+      marginTop: 5,
     },
     cardTitle: {
       fontFamily: 'Poppins-Light',
