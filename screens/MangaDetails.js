@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from './context/themeContext';
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import axios from 'axios';
 
 const MangaDetails = ({ route, navigation }) => {
@@ -66,6 +67,13 @@ const MangaDetails = ({ route, navigation }) => {
 
   return (
     <ScrollView style={[styles.container, themeStyles.container]}>
+      <Ionicons 
+              name="arrow-back" 
+              size={25} 
+              color={isDarkMode ? '#ccc' : '#666'} 
+              onPress={() => navigation.goBack()}
+              style={{padding: 5}} 
+      />
       <View style={[styles.cardContainer, themeStyles.cardContainer]}>
         <View style={styles.headerSection}>
           <Image source={{ uri: getCoverImageUrl() }} style={styles.cover} />
@@ -140,7 +148,7 @@ const styles = StyleSheet.create({
     },
     author: { 
       fontFamily: 'Poppins-Light',
-      fontSize: 14, 
+      fontSize: 12, 
       color: '#333', 
       marginBottom: 8 
     },
@@ -188,7 +196,7 @@ const styles = StyleSheet.create({
     },
     author: { 
       fontFamily: 'Poppins-Light',
-      fontSize: 14, 
+      fontSize: 12, 
       color: '#fff', 
       marginBottom: 8 
     },

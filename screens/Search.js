@@ -3,6 +3,7 @@ import { View, TextInput, FlatList, TouchableOpacity, Text, Image, StyleSheet, A
 import { useTheme } from './context/themeContext';
 import { searchManga } from './api/api';
 import { useFocusEffect } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
 const Search = ({ navigation }) => {
   const [query, setQuery] = useState('');
@@ -49,6 +50,13 @@ const Search = ({ navigation }) => {
   return (
     <View style={[styles.container, themeStyles.container]}>
       <Animated.View style={[styles.searchBar, themeStyles.searchBar]}>
+      <Ionicons 
+        name="arrow-back" 
+        size={22} 
+        color={isDarkMode ? '#ccc' : '#666'} 
+        onPress={() => navigation.goBack()}
+        style={styles.backButton} 
+      />
         <TextInput
           style={themeStyles.input}
           placeholder="Type to search manga..."
@@ -105,18 +113,18 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   searchBar: {
-    marginBottom: 10,
     overflow: 'hidden',
-    paddingHorizontal: 10,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
     borderBottomWidth: 2,
-    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   grid: {
     paddingBottom: 20,
+    margin: 10,
   },
   card: {
     flex: 1,
@@ -136,7 +144,9 @@ const styles = StyleSheet.create({
   spinner: {
     marginTop: 20,
   },
-
+  backButton:{
+    marginLeft: 10,
+  },
   light: {
     container: {
       backgroundColor: '#fff',
@@ -157,10 +167,10 @@ const styles = StyleSheet.create({
       textAlign: 'center',
     },
     input: {
+      flex: 1,
       height: 45,
       paddingHorizontal: 5,
       fontSize: 14,
-      backgroundColor: '#fff',
       borderRadius: 20,
       color: '#333',
       fontFamily: 'Poppins-Light',
@@ -172,6 +182,7 @@ const styles = StyleSheet.create({
       marginTop: 20,
       color: '#888',
     },
+ 
   },
   dark: {
     container: {
@@ -193,11 +204,11 @@ const styles = StyleSheet.create({
     },
     input: {
       height: 45,
-      paddingHorizontal: 0,
       fontSize: 14,
       borderRadius: 20,
       color: '#fff',
       fontFamily: 'Poppins-Light',
+      marginLeft: 5,
     },
     noResultsText: {
       fontFamily: 'Poppins-Light',

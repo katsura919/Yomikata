@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 7,
+    height: 50,
     backgroundColor: '#222222',
   },
   chapterText: {

@@ -4,17 +4,33 @@ import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet, StatusBar, S
 import { fetchPopularMangas, fetchUpdatedChapters } from './api/api';
 import { lightTheme, darkTheme } from './context/themes';
 import { useTheme } from './context/themeContext';
+import { Ionicons } from '@expo/vector-icons';
 import Slider from './components/Slider';
 import LottieView from 'lottie-react-native';
+import NetInfo from '@react-native-community/netinfo';  // Import NetInfo
+
 const Home = ({ navigation }) => {
   const [popularMangas, setPopularMangas] = useState([]);
   const [updatedMangas, setUpdatedMangas] = useState([]);
   const [loadingPopular, setLoadingPopular] = useState(true);
   const [loadingUpdated, setLoadingUpdated] = useState(true);
+  const [isConnected, setIsConnected] = useState(true);  // Track internet connection
   const { isDarkMode } = useTheme();
   const scrollViewRef = useRef(null);
   const themeStyles = isDarkMode ? styles.dark : styles.light;
   const animation = useRef<LottieView>(null);
+
+  useEffect(() => {
+    // Check internet connection status
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    return () => {
+      unsubscribe();  // Unsubscribe when component is unmounted
+    };
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -35,8 +51,10 @@ const Home = ({ navigation }) => {
       }
     };
 
-    fetchData();
-  }, []);
+    if (isConnected) {
+      fetchData();  // Only fetch data if there's an internet connection
+    }
+  }, [isConnected]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -58,16 +76,16 @@ const Home = ({ navigation }) => {
 
   const renderMangaList = (data, title, loading) => (
     <View style={styles.sectionContainer}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10,  }}>
-      <LottieView
-            style={{
-              width: 25,
-              height: 25,
-            }}
-              source={require('../assets/icons/update.json')}
-              autoPlay
-              loop
-            />
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+        <LottieView
+          style={{
+            width: 20,
+            height: 20,
+          }}
+          source={require('../assets/icons/update.json')}
+          autoPlay
+          loop
+        />
         <Text style={themeStyles.popularText}>{title}</Text>
       </View>
       {loading ? (
@@ -100,6 +118,25 @@ const Home = ({ navigation }) => {
     </View>
   );
 
+  if (!isConnected) {
+    return (
+      <View style={[styles.container, themeStyles.container]}>
+        <View style={styles.header}>
+        <Text style={themeStyles.headerText}>Yomikata</Text>
+        <View style={styles.iconContainer}>
+          <TouchableOpacity>
+            <Ionicons name="search" size={24} color={isDarkMode ? '#fff' : '#333'} onPress={() => navigation.navigate('Search')} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconSpacing}>
+            <Ionicons name="settings" size={24} color={isDarkMode ? '#fff' : '#333'} onPress={() => navigation.navigate('Settings')} />
+          </TouchableOpacity>
+        </View>
+      </View>
+        <Text style={themeStyles.noInternetText}>No Internet</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView ref={scrollViewRef} style={[styles.container, themeStyles.container]}>
       <StatusBar
@@ -107,24 +144,30 @@ const Home = ({ navigation }) => {
         backgroundColor={isDarkMode ? '#1e1e1e' : '#fff'}
       />
       <View style={styles.header}>
-        <View>
-          <Text style={themeStyles.headerText}>Yomikata</Text>
+        <Text style={themeStyles.headerText}>Yomikata</Text>
+        <View style={styles.iconContainer}>
+          <TouchableOpacity>
+            <Ionicons name="search" size={24} color={isDarkMode ? '#fff' : '#333'} onPress={() => navigation.navigate('Search')} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconSpacing}>
+            <Ionicons name="settings" size={24} color={isDarkMode ? '#fff' : '#333'} onPress={() => navigation.navigate('Settings')} />
+          </TouchableOpacity>
         </View>
       </View>
 
       <Slider items={popularMangas} getImageUrl={getCoverImageUrl} navigation={navigation} />
       {renderMangaList(updatedMangas, 'Updated Manga', loadingUpdated)}
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10  }}>
-      <LottieView
-            style={{
-              width: 25,
-              height: 25,
-            }}
-              source={require('../assets/icons/hot.json')}
-              autoPlay
-              loop
-            />
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+        <LottieView
+          style={{
+            width: 20,
+            height: 20,
+          }}
+          source={require('../assets/icons/hot.json')}
+          autoPlay
+          loop
+        />
         <Text style={themeStyles.popularText}>Popular Manga</Text>
       </View>
       <View style={styles.popularContainer}>
@@ -134,7 +177,7 @@ const Home = ({ navigation }) => {
           <FlatList
             data={popularMangas}
             keyExtractor={(item) => item.id}
-            numColumns={2}
+            numColumns={3}
             contentContainerStyle={styles.grid}
             scrollEnabled={false}
             renderItem={({ item }) => {
@@ -145,7 +188,7 @@ const Home = ({ navigation }) => {
                   onPress={() => navigation.navigate('Details', { manga: item })}
                 >
                   {imageUrl && <Image source={{ uri: imageUrl }} style={styles.gridcover} />}
-                  <Text style={themeStyles.gridTitle} numberOfLines={2}>
+                  <Text style={themeStyles.gridTitle} numberOfLines={1}>
                     {item.attributes.title.en || 'No Title Available'}
                   </Text>
                 </TouchableOpacity>
@@ -160,12 +203,21 @@ const Home = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    padding: 10,
   },
   header: {
-    height: 40,
-    paddingLeft: 10,
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconSpacing: {
+    marginLeft: 16,
   },
   light: {
     container: {
@@ -173,7 +225,7 @@ const styles = StyleSheet.create({
     },
     headerText: {
       fontFamily: 'Knewave-Regular',
-      color: '#454545',
+      color: '#333',
       fontSize: 27,
       marginLeft: 5,
     },
@@ -183,8 +235,7 @@ const styles = StyleSheet.create({
       color: '#333',
       marginLeft: 5,
       marginTop: 3,
-      width:500,
-  
+      width: 500,
     },
     cardTitle: {
       fontFamily: 'Poppins-Light',
@@ -195,10 +246,20 @@ const styles = StyleSheet.create({
     },
     gridTitle: {
       fontFamily: 'Poppins-Light',
-      padding: 5,
       fontSize: 12,
       color: '#333',
+      marginTop: 5,
+    },
+    noInternetText: {
+     
+      fontFamily: 'Poppins-Light',
+      fontSize: 15,
+      color: '#333',
       textAlign: 'center',
+      marginTop: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+
     },
   },
   dark: {
@@ -217,8 +278,7 @@ const styles = StyleSheet.create({
       color: '#fff',
       marginLeft: 10,
       marginTop: 3,
-      width:500,
-     
+      width: 500,
     },
     cardTitle: {
       fontFamily: 'Poppins-Light',
@@ -229,16 +289,23 @@ const styles = StyleSheet.create({
     },
     gridTitle: {
       fontFamily: 'Poppins-Light',
-      padding: 5,
       fontSize: 12,
       color: '#fff',
+      marginTop: 5,
+    },
+    noInternetText: {
+      fontFamily: 'Poppins-Light',
+      fontSize: 15,
+      color: '#fff',
       textAlign: 'center',
+      marginTop: 20,
+      justifyContent: 'center',
+      alignItems: 'center'
     },
   },
   sectionContainer: {
     marginTop: 10,
     marginBottom: 30,
-  
   },
   horizontalList: {
     paddingHorizontal: 10,
@@ -259,11 +326,12 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   grid: {
+    marginTop: 10,
     paddingBottom: 20,
   },
   gridcard: {
     flex: 1,
-    margin: 10,
+    margin: 5,
     alignItems: 'center',
     borderRadius: 8,
     overflow: 'hidden',
@@ -271,12 +339,11 @@ const styles = StyleSheet.create({
   },
   gridcover: {
     width: '100%',
-    height: 240,
+    height: 170,
     borderRadius: 5,
   },
-  popularContainer:{
-    marginBottom: 40
-  }
+  popularContainer: {},
+
 });
 
 export default Home;

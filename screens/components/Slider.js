@@ -54,7 +54,8 @@ const Slider = ({ items, getImageUrl, navigation }) => {
 
 const styles = StyleSheet.create({
   backgroundWrapper: {
-    margin: 10,
+    marginTop: 10,
+    marginHorizontal: 25,
     borderRadius: 10,
     overflow: 'hidden',
     marginBottom: 20,
@@ -97,8 +98,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   dot: {
-    width: 5,
-    height: 5,
+    width: 7,
+    height: 7,
     borderRadius: 5,
     backgroundColor: '#CCC',
     marginHorizontal: 5,

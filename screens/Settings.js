@@ -1,9 +1,9 @@
 import React, { useState, useEffect }  from 'react';
 import { View, Text, StyleSheet, Image, Switch } from 'react-native';
 import { useTheme } from './context/themeContext'; 
+import Ionicons from 'react-native-vector-icons/Ionicons'
 
-
-const Settings = () => {
+const Settings = ({navigation}) => {
   const { isDarkMode, toggleTheme } = useTheme(); 
 
 
@@ -12,6 +12,13 @@ const Settings = () => {
 
   return (
     <View style={[styles.container, themeStyles.container]}>
+      <Ionicons 
+                    name="arrow-back" 
+                    size={25} 
+                    color={isDarkMode ? '#ccc' : '#666'} 
+                    onPress={() => navigation.goBack()}
+                    style={{padding: 5}} 
+            />
       {/* App Logo */}
       <View style={styles.logoContainer}>
         <Image
