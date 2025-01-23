@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ScrollView, ImageBackground, StatusBar} from 'react-native';
 import { useTheme } from './context/themeContext';
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import { LinearGradient } from 'expo-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 
 const MangaDetails = ({ route, navigation }) => {
@@ -67,38 +69,60 @@ const MangaDetails = ({ route, navigation }) => {
 
   return (
     <ScrollView style={[styles.container, themeStyles.container]}>
+      <StatusBar 
+        translucent 
+        backgroundColor="transparent" 
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
+      />
+      <ImageBackground
+        source={{ uri: getCoverImageUrl() }}
+        style={{height: 370}}
+      
+      >
+        <LinearGradient
+          colors={['transparent', isDarkMode ? '#1e1e1e' : '#fff' ]} // Fades from transparent to black
+          start={{ x: 0.5, y: 0.1 }} // Start of the gradient (top center)
+          end={{ x: 0.5, y: 1 }} // End of the gradient (bottom center)
+          style={styles.gradient}
+        >
       <Ionicons 
               name="arrow-back" 
               size={25} 
-              color={isDarkMode ? '#ccc' : '#666'} 
+              color={isDarkMode ? '#fff' : '#fff'} 
               onPress={() => navigation.goBack()}
-              style={{padding: 5}} 
+              style={{padding: 5, marginTop: 30}} 
       />
       <View style={[styles.cardContainer, themeStyles.cardContainer]}>
-        <View style={styles.headerSection}>
-          <Image source={{ uri: getCoverImageUrl() }} style={styles.cover} />
-          <View style={styles.metadataSection}>
-            <Text style={themeStyles.title}>{manga.attributes.title.en || 'No Title Available'}</Text>
-            <Text style={themeStyles.author}>by {manga.attributes.author || 'Unknown Author'}</Text>
-            <View style={styles.tagsContainer}>
-              <Text style={themeStyles.tag}>Action</Text>
-              <Text style={themeStyles.tag}>Adventure</Text>
-              <Text style={themeStyles.tag}>Fantasy</Text>
-            </View>
+        <View style={styles.metadataContainer}>
+          <View>
+          <Text style={themeStyles.title}>{manga.attributes.title.en || 'No Title Available'}</Text>
+          <Text style={themeStyles.subTitle}>Romance • Action • Manhwa</Text>
           </View>
         </View>
+      </View>
+      </LinearGradient>
+      </ImageBackground>
 
-        <Text
-          style={[themeStyles.description, { textAlign: 'justify' }]}
-          numberOfLines={isExpanded ? 0 : 3}>
-          {manga.attributes.description.en || 'No Description Available'}
-        </Text>
-        <TouchableOpacity onPress={toggleDescription} style={styles.toggleButton}>
-          <Text style={themeStyles.toggleText}>{isExpanded ? 'See Less' : 'See More'}</Text>
-        </TouchableOpacity>
+    <View style={{padding: 10}}>
+      <Text style={themeStyles.sectionTitle}>Synopsis</Text>
+      <Text
+        style={[themeStyles.description, { textAlign: 'justify' }]}
+        numberOfLines={isExpanded ? 0 : 3}>
+        {manga.attributes.description.en || 'No Description Available'}
+      </Text>
+      <TouchableOpacity onPress={toggleDescription} style={styles.toggleButton}>
+        <View style={styles.viewMoreBtn}>
+          <Icon
+            name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+            size={24}
+            color={isDarkMode ? '#ccc' : '#666'} 
+          />
+        </View>
+      </TouchableOpacity>
       </View>
 
-     
+      <View style={{padding: 10}}>
+      <Text style={themeStyles.sectionTitle}>Chapters</Text>
       <FlatList
         data={chapters}
         keyExtractor={(item, index) => `${item.id}-${page}-${index}`}
@@ -111,7 +135,7 @@ const MangaDetails = ({ route, navigation }) => {
                 initialChapter: item.id,
               })
             }>
-            <View style={themeStyles.chapterCard}>
+            <View style={[styles.chapterCard, themeStyles.chapterCard]}>
               <Text style={themeStyles.chapterTitle}>
                 Chapter {item.attributes.chapter}: {item.attributes.title || 'No Title'}
               </Text>
@@ -130,55 +154,55 @@ const MangaDetails = ({ route, navigation }) => {
           )
         }
       />
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1e1e1e', padding: 5 },
+  container: { flex: 1},
   light: {
     container: {
       backgroundColor: '#fff',
     },
     title: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 20, 
+      fontSize: 22, 
       color: '#333', 
-      marginBottom: 8 
+      textAlign: 'center'
     },
-    author: { 
-      fontFamily: 'Poppins-Light',
-      fontSize: 12, 
-      color: '#333', 
-      marginBottom: 8 
-    },
-    tag: {
-      fontFamily: 'Poppins-Light',
-      color: '#333',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 8,
-      fontSize: 12,
-      marginRight: 8,
+    subTitle: {
+      fontFamily: 'Poppins-Regular',
+      fontSize: 14,
+      color: '#666',
       marginBottom: 8,
+      textAlign: 'center'
     },
-    description: { 
+    actionButtonText: {
+      fontFamily: 'Poppins-Regular',
+      fontSize: 12,
+      color: '#333',
+      marginLeft: 5
+    },
+    sectionTitle: {
+      fontFamily: 'Poppins-Bold',
+      fontSize: 16,
+      color: '#333',
+      marginBottom: 10,
+      
+    },
+    description: {
       fontFamily: 'Poppins-Light',
-      fontSize: 12, 
-      color: '#333', 
-      marginBottom: 8 
-    },
-    toggleText: { 
-      fontFamily: 'Poppins-Bold', 
-      color: '#333', 
-      fontSize: 12 
+      fontSize: 12,
+      color: '#333',
     },
     chapterCard: {
+      backgroundColor: '#f0f0f0',
       padding: 12,
       borderRadius: 10,
       marginBottom: 10,
     },
-    chapterTitle: { 
+    chapterTitle: {
       fontFamily: 'Poppins-Bold',
       fontSize: 13, 
       color: '#454545' 
@@ -186,82 +210,101 @@ const styles = StyleSheet.create({
   },
   dark: {
     container: {
-      backgroundColor: '#333',
+      backgroundColor: '#1e1e1e',
     },
     title: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 20, 
+      fontSize: 22, 
       color: '#fff', 
-      marginBottom: 8 
+      textAlign: 'center'
     },
-    author: { 
-      fontFamily: 'Poppins-Light',
-      fontSize: 12, 
-      color: '#fff', 
-      marginBottom: 8 
-    },
-    tag: {
-      fontFamily: 'Poppins-Light',
-      color: '#fff',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 8,
-      fontSize: 12,
-      marginRight: 8,
+    subTitle: {
+      fontFamily: 'Poppins-Regular',
+      fontSize: 14,
+      color: '#ccc',
       marginBottom: 8,
+      textAlign: 'center'
     },
-    description: { 
+    actionButtonText: {
+      fontFamily: 'Poppins-Regular',
+      fontSize: 12,
+      color: '#ccc',
+      marginLeft: 5
+    },
+    sectionTitle: {
+      fontFamily: 'Poppins-Bold',
+      fontSize: 16,
+      color: '#ccc',
+      marginBottom: 10,
+    },
+    description: {
       fontFamily: 'Poppins-Light',
-      fontSize: 12, 
-      color: '#fff', 
-      marginBottom: 8 
-    },
-    toggleText: { 
-      fontFamily: 'Poppins-Bold', 
-      color: '#fff', 
-      fontSize: 12 
+      fontSize: 12,
+      color: '#ccc',
     },
     chapterCard: {
+      backgroundColor: '#333',
       padding: 12,
       borderRadius: 10,
       marginBottom: 10,
     },
-    chapterTitle: { 
+    chapterTitle: {
       fontFamily: 'Poppins-Bold',
       fontSize: 13, 
       color: '#fff' 
     },
   },
+  coverImage: {
+    width: '100%',
+    height: 250,
+    borderRadius: 10,
+    marginBottom: 16
+  },
   cardContainer: {
-    borderRadius: 15,
-    padding: 16,
+    position: 'absolute', 
+    bottom: 0, 
+    left: 0, 
+    right: 0, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+  },
+  gradient: {
+    flex: 1, // Ensure the gradient covers the entire container
+    width: '100%', // Full width
+    height: '100%', // Full height
+  },
+  
+  metadataContainer: {
     marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 10,
   },
-  headerSection: { flexDirection: 'row', marginBottom: 16 },
-  cover: { width: 120, height: 180, borderRadius: 10, marginRight: 16 },
-  metadataSection: { flex: 1 },
-  title: {
-    fontFamily: 'Poppins-Bold',
-    fontSize: 20, 
-    color: '#FFFFFF', 
-    marginBottom: 8 
-  },
-  tagsContainer: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap' },
-  toggleButton: { 
-    alignSelf: 'flex-start' 
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16
   },
   actionButton: {
-    backgroundColor: '#FF6F61',
-    borderRadius: 10,
-    paddingVertical: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: '#5b2e99',
   },
-  actionButtonText: { fontFamily: 'Poppins-Light', color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-
-
+  toggleButton: {
+    alignItems: 'center',
+    marginVertical: 10
+  },
+  viewMoreBtn: {
+    width: '100%',
+    alignItems: 'center'
+  },
+  chapterCard: {
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
   loadMoreButton: {
     backgroundColor: '#5b2e99',
     padding: 10,

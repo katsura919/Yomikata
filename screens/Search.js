@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, TextInput, FlatList, TouchableOpacity, Text, Image, StyleSheet, Animated, ActivityIndicator } from 'react-native';
 import { useTheme } from './context/themeContext';
-import { searchManga } from './api/api';
+import { searchManga } from './services/api';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 

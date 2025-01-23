@@ -72,3 +72,15 @@ export const searchManga = async (query) => {
     throw error;
   }
 };
+
+
+// Fetch Cover Image
+export const getCoverImageUrl = (manga) => {
+    if (manga && manga.relationships) {
+      const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
+      if (coverRelation) {
+        return `https://uploads.mangadex.org/covers/${manga.id}/${coverRelation.attributes.fileName}.512.jpg`;
+      }
+    }
+    return null;
+  };

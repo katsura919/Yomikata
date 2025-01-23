@@ -8,11 +8,7 @@ const Slider = ({ items, getImageUrl, navigation }) => {
 
   return (
     <View style={styles.backgroundWrapper}>
-      <ImageBackground
-        source={{ uri: getImageUrl(items[currentPage]) }}
-        style={styles.backgroundImage}
-        blurRadius={10}
-      >
+    
         <View style={styles.overlay}>
          
           <PagerView
@@ -28,7 +24,7 @@ const Slider = ({ items, getImageUrl, navigation }) => {
                   <Image
                     source={{ uri: getImageUrl(item) }}
                     style={styles.pagerImage}
-                    resizeMode="contain"
+                    resizeMode="cover"
                   />
                 </TouchableOpacity>
                 <Text style={styles.title}>{items[currentPage]?.title}</Text>
@@ -47,17 +43,14 @@ const Slider = ({ items, getImageUrl, navigation }) => {
             ))}
           </View>
         </View>
-      </ImageBackground>
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   backgroundWrapper: {
-    marginTop: 10,
-    marginHorizontal: 25,
-    borderRadius: 10,
-    overflow: 'hidden',
+    width: '100%',
     marginBottom: 20,
   },
   backgroundImage: {
@@ -66,7 +59,6 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -74,7 +66,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFF',
-
     textAlign: 'center',
   },
   pagerView: {
@@ -86,16 +77,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pagerImage: {
-    marginTop: 40,
-    width: 210,
-    height: 300,
-    borderRadius: 20,
+    marginTop: 10,
+    width: 245,
+    height: 350,
+    borderRadius: 10,
+    backgroundColor: '#fff'
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginTop: 10,
   },
   dot: {
     width: 7,

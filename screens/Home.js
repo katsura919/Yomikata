@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet, StatusBar, ScrollView, ActivityIndicator } from 'react-native';
-import { fetchPopularMangas, fetchUpdatedChapters } from './api/api';
+import { fetchPopularMangas, fetchUpdatedChapters, getCoverImageUrl} from './services/api';
 import { lightTheme, darkTheme } from './context/themes';
 import { useTheme } from './context/themeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -64,15 +64,7 @@ const Home = ({ navigation }) => {
     }, [])
   );
 
-  const getCoverImageUrl = (manga) => {
-    if (manga && manga.relationships) {
-      const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
-      if (coverRelation) {
-        return `https://uploads.mangadex.org/covers/${manga.id}/${coverRelation.attributes.fileName}.512.jpg`;
-      }
-    }
-    return null;
-  };
+
 
   const renderMangaList = (data, title, loading) => (
     <View style={styles.sectionContainer}>
@@ -143,6 +135,7 @@ const Home = ({ navigation }) => {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={isDarkMode ? '#1e1e1e' : '#fff'}
       />
+
       <View style={styles.header}>
         <Text style={themeStyles.headerText}>Yomikata</Text>
         <View style={styles.iconContainer}>
@@ -210,7 +203,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
+    marginBottom: 5,
+    top: -10
   },
   iconContainer: {
     flexDirection: "row",
@@ -226,8 +221,7 @@ const styles = StyleSheet.create({
     headerText: {
       fontFamily: 'Knewave-Regular',
       color: '#333',
-      fontSize: 27,
-      marginLeft: 5,
+      fontSize: 23,
     },
     popularText: {
       fontFamily: 'Poppins-Bold',
@@ -251,7 +245,6 @@ const styles = StyleSheet.create({
       marginTop: 5,
     },
     noInternetText: {
-     
       fontFamily: 'Poppins-Light',
       fontSize: 15,
       color: '#333',
@@ -269,8 +262,8 @@ const styles = StyleSheet.create({
     headerText: {
       fontFamily: 'Knewave-Regular',
       color: '#fff',
-      fontSize: 27,
-      marginLeft: 5,
+      fontSize: 23,
+    
     },
     popularText: {
       fontFamily: 'Poppins-Bold',
