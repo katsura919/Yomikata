@@ -11,7 +11,7 @@ import Settings from './screens/Settings';
 import MangaDetails from './screens/MangaDetails';
 import Reader from './screens/Reader';
 import SearchResults from './screens/SearchResults';
-
+import BugReport from './screens/BugReport';
 // Create Stack Navigator
 const Stack = createStackNavigator();
 
@@ -27,6 +27,7 @@ const App = () => {
             <Stack.Screen name="Details" component={MangaDetails} />
             <Stack.Screen name="Reader" component={Reader} />
             <Stack.Screen name="SearchResults" component={SearchResults} />
+            <Stack.Screen name="BugReport" component={BugReport} />
           </Stack.Navigator>
         </FontProvider>
       </ThemeProvider>

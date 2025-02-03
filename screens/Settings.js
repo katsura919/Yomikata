@@ -1,5 +1,5 @@
 import React, { useState, useEffect }  from 'react';
-import { View, Text, StyleSheet, Image, Switch } from 'react-native';
+import { View, Text, StyleSheet, Image, Switch, StatusBar } from 'react-native';
 import { useTheme } from './context/themeContext'; 
 import Ionicons from 'react-native-vector-icons/Ionicons'
 
@@ -12,6 +12,7 @@ const Settings = ({navigation}) => {
 
   return (
     <View style={[styles.container, themeStyles.container]}>
+      <StatusBar/>
       <Ionicons 
                     name="arrow-back" 
                     size={25} 
@@ -39,7 +40,15 @@ const Settings = ({navigation}) => {
           thumbColor={isDarkMode ? '#fff' : '#000'}
           trackColor={{ false: '#767577', true: '#81b0ff' }}
         />
+        
       </View>
+      <View style={{ marginHorizontal: 10 }}>
+        <Text style={themeStyles.switchLabel} onPress={() => navigation.navigate('BugReport')}>
+          Report a Bug
+        </Text>
+      </View>
+
+      
     </View>
   );
 };
@@ -48,6 +57,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    marginTop: 0,
   },
   light: {
     container: {

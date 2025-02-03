@@ -30,10 +30,10 @@ const MangaDetails = ({ route, navigation }) => {
       const response = await axios.get('https://api.mangadex.org/chapter', {
         params: {
           manga: manga.id,
-          limit: 20,
+          limit: 50,
           translatedLanguage: ['en'],
           order: { chapter: 'asc' },
-          offset: (page - 1) * 20,
+          offset: (page - 1) * 50,
         },
       });
 
@@ -77,6 +77,7 @@ const MangaDetails = ({ route, navigation }) => {
       <ImageBackground
         source={{ uri: getCoverImageUrl() }}
         style={{height: 370}}
+        blurRadius={2}
       
       >
         <LinearGradient
@@ -93,13 +94,20 @@ const MangaDetails = ({ route, navigation }) => {
               style={{padding: 5, marginTop: 30}} 
       />
       <View style={[styles.cardContainer, themeStyles.cardContainer]}>
+        <Image 
+          source={{ uri: getCoverImageUrl() || 'https://via.placeholder.com/300' }} 
+          style={{ height: 260, width: '100%', resizeMode: 'contain', marginBottom: 10 }} 
+        />
         <View style={styles.metadataContainer}>
           <View>
-          <Text style={themeStyles.title}>{manga.attributes.title.en || 'No Title Available'}</Text>
-          <Text style={themeStyles.subTitle}>Romance • Action • Manhwa</Text>
+            <Text style={themeStyles.title}>
+              {manga?.attributes?.title?.en ?? 'No Title Available'}
+            </Text>
+            <Text style={themeStyles.subTitle}>Romance • Action • Manga</Text>
           </View>
         </View>
       </View>
+
       </LinearGradient>
       </ImageBackground>
 
@@ -262,7 +270,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     position: 'absolute', 
-    bottom: 0, 
+    bottom: -25, 
     left: 0, 
     right: 0, 
     justifyContent: 'center', 
@@ -310,7 +318,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: 10,
   },
   loadMoreText: { color: '#FFFFFF' },
   noMoreChaptersText: { color: '#AAAAAA', textAlign: 'center', marginBottom: 16 },
