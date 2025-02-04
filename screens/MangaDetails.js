@@ -14,6 +14,7 @@ const MangaDetails = ({ route, navigation }) => {
   const [hasMoreChapters, setHasMoreChapters] = useState(true);
   const { isDarkMode } = useTheme();
   const themeStyles = isDarkMode ? styles.dark : styles.light;
+  const [order, setOrder] = useState('asc'); // State to track the order
 
   const getCoverImageUrl = () => {
     const coverRelation = manga.relationships.find((rel) => rel.type === 'cover_art');
@@ -32,7 +33,7 @@ const MangaDetails = ({ route, navigation }) => {
           manga: manga.id,
           limit: 50,
           translatedLanguage: ['en'],
-          order: { chapter: 'asc' },
+          order: { chapter: order }, // Use the order state
           offset: (page - 1) * 50,
         },
       });
@@ -57,6 +58,12 @@ const MangaDetails = ({ route, navigation }) => {
     }
   };
 
+  const toggleOrder = () => {
+    setOrder(order === 'asc' ? 'desc' : 'asc');
+    setChapters([]); // Clear the chapters to refetch with the new order
+    setPage(1); // Reset the page to 1
+  };
+
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleDescription = () => {
@@ -65,7 +72,7 @@ const MangaDetails = ({ route, navigation }) => {
 
   useEffect(() => {
     fetchChapters();
-  }, [page]);
+  }, [page, order]); // Refetch chapters when page or order changes
 
   return (
     <ScrollView style={[styles.container, themeStyles.container]}>
@@ -78,90 +85,100 @@ const MangaDetails = ({ route, navigation }) => {
         source={{ uri: getCoverImageUrl() }}
         style={{height: 370}}
         blurRadius={2}
-      
       >
         <LinearGradient
-          colors={['transparent', isDarkMode ? '#1e1e1e' : '#fff' ]} // Fades from transparent to black
-          start={{ x: 0.5, y: 0.1 }} // Start of the gradient (top center)
-          end={{ x: 0.5, y: 1 }} // End of the gradient (bottom center)
+          colors={['transparent', isDarkMode ? '#1e1e1e' : '#fff' ]}
+          start={{ x: 0.5, y: 0.1 }}
+          end={{ x: 0.5, y: 1 }}
           style={styles.gradient}
         >
-      <Ionicons 
-              name="arrow-back" 
-              size={25} 
-              color={isDarkMode ? '#fff' : '#fff'} 
-              onPress={() => navigation.goBack()}
-              style={{padding: 5, marginTop: 30}} 
-      />
-      <View style={[styles.cardContainer, themeStyles.cardContainer]}>
-        <Image 
-          source={{ uri: getCoverImageUrl() || 'https://via.placeholder.com/300' }} 
-          style={{ height: 260, width: '100%', resizeMode: 'contain', marginBottom: 10 }} 
-        />
-        <View style={styles.metadataContainer}>
-          <View>
-            <Text style={themeStyles.title}>
-              {manga?.attributes?.title?.en ?? 'No Title Available'}
-            </Text>
-            <Text style={themeStyles.subTitle}>Romance • Action • Manga</Text>
+          <Ionicons 
+            name="arrow-back" 
+            size={25} 
+            color={isDarkMode ? '#fff' : '#fff'} 
+            onPress={() => navigation.goBack()}
+            style={{padding: 5, marginTop: 30}} 
+          />
+          <View style={[styles.cardContainer, themeStyles.cardContainer]}>
+            <Image 
+              source={{ uri: getCoverImageUrl() || 'https://via.placeholder.com/300' }} 
+              style={{ height: 260, width: 200, resizeMode: 'contain', marginBottom: 10 }} 
+            />
+            <View style={styles.metadataContainer}>
+              <View>
+                <Text style={themeStyles.title}>
+                  {manga?.attributes?.title?.en ?? 'No Title Available'}
+                </Text>
+                <Text style={themeStyles.subTitle}>Romance • Action • Manga</Text>
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
-
-      </LinearGradient>
+        </LinearGradient>
       </ImageBackground>
 
-    <View style={{padding: 10}}>
-      <Text style={themeStyles.sectionTitle}>Synopsis</Text>
-      <Text
-        style={[themeStyles.description, { textAlign: 'justify' }]}
-        numberOfLines={isExpanded ? 0 : 3}>
-        {manga.attributes.description.en || 'No Description Available'}
-      </Text>
-      <TouchableOpacity onPress={toggleDescription} style={styles.toggleButton}>
-        <View style={styles.viewMoreBtn}>
-          <Icon
-            name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-            size={24}
-            color={isDarkMode ? '#ccc' : '#666'} 
-          />
-        </View>
-      </TouchableOpacity>
+      <View style={{padding: 10}}>
+        <Text style={themeStyles.sectionTitle}>Synopsis</Text>
+        <Text
+          style={[themeStyles.description, { textAlign: 'justify' }]}
+          numberOfLines={isExpanded ? 0 : 3}>
+          {manga.attributes.description.en || 'No Description Available'}
+        </Text>
+        <TouchableOpacity onPress={toggleDescription} style={styles.toggleButton}>
+          <View style={styles.viewMoreBtn}>
+            <Icon
+              name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+              size={24}
+              color={isDarkMode ? '#ccc' : '#666'} 
+            />
+          </View>
+        </TouchableOpacity>
       </View>
 
-      <View style={{padding: 10}}>
-      <Text style={themeStyles.sectionTitle}>Chapters</Text>
-      <FlatList
-        data={chapters}
-        keyExtractor={(item, index) => `${item.id}-${page}-${index}`}
-        scrollEnabled={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('Reader', {
-                chapters,
-                initialChapter: item.id,
-              })
-            }>
-            <View style={[styles.chapterCard, themeStyles.chapterCard]}>
-              <Text style={themeStyles.chapterTitle}>
-                Chapter {item.attributes.chapter}: {item.attributes.title || 'No Title'}
-              </Text>
-            </View>
+      <View style={{width: '100%', padding: 10}}>
+        <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+          <Text style={themeStyles.sectionTitle}>Chapters</Text>
+          <TouchableOpacity onPress={toggleOrder} style={styles.orderButton}>
+            <Text style={themeStyles.orderButtonText}>
+            <Ionicons 
+                name={order === 'asc' ? 'arrow-down' : 'arrow-up'} 
+                size={24} 
+                color="#5b2e99" 
+              />
+            </Text>
           </TouchableOpacity>
-        )}
-        ListFooterComponent={
-          loading ? (
-            <Text style={styles.loadingText}>Loading...</Text>
-          ) : hasMoreChapters ? (
-            <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore}>
-              <Text style={styles.loadMoreText}>Load More</Text>
+        </View>
+        
+        <FlatList
+          data={chapters}
+          keyExtractor={(item, index) => `${item.id}-${page}-${index}`}
+          scrollEnabled={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('Reader', {
+                  chapters,
+                  initialChapter: item.id,
+                })
+              }>
+              <View style={[styles.chapterCard, themeStyles.chapterCard]}>
+                <Text style={themeStyles.chapterTitle}>
+                  Chapter {item.attributes.chapter}: {item.attributes.title || 'No Title'}
+                </Text>
+              </View>
             </TouchableOpacity>
-          ) : (
-            <Text style={styles.noMoreChaptersText}>No More Chapters</Text>
-          )
-        }
-      />
+          )}
+          ListFooterComponent={
+            loading ? (
+              <Text style={styles.loadingText}>Loading...</Text>
+            ) : hasMoreChapters ? (
+              <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore}>
+                <Text style={styles.loadMoreText}>Load More</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.noMoreChaptersText}>No More Chapters</Text>
+            )
+          }
+        />
       </View>
     </ScrollView>
   );
@@ -175,7 +192,7 @@ const styles = StyleSheet.create({
     },
     title: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 22, 
+      fontSize: 17, 
       color: '#333', 
       textAlign: 'center'
     },
@@ -197,7 +214,6 @@ const styles = StyleSheet.create({
       fontSize: 16,
       color: '#333',
       marginBottom: 10,
-      
     },
     description: {
       fontFamily: 'Poppins-Light',
@@ -215,6 +231,11 @@ const styles = StyleSheet.create({
       fontSize: 13, 
       color: '#454545' 
     },
+    orderButtonText: {
+      fontFamily: 'Poppins-Regular',
+      fontSize: 14,
+      color: '#5b2e99',
+    },
   },
   dark: {
     container: {
@@ -222,7 +243,7 @@ const styles = StyleSheet.create({
     },
     title: {
       fontFamily: 'Poppins-Bold',
-      fontSize: 22, 
+      fontSize: 17, 
       color: '#fff', 
       textAlign: 'center'
     },
@@ -261,6 +282,12 @@ const styles = StyleSheet.create({
       fontSize: 13, 
       color: '#fff' 
     },
+    orderButtonText: {
+      fontFamily: 'Poppins-Light',
+      fontSize: 14,
+      color: '#5b2e99',
+      marginBottom: 10,
+    },
   },
   coverImage: {
     width: '100%',
@@ -277,11 +304,10 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
   },
   gradient: {
-    flex: 1, // Ensure the gradient covers the entire container
-    width: '100%', // Full width
-    height: '100%', // Full height
+    flex: 1,
+    width: '100%',
+    height: '100%',
   },
-  
   metadataContainer: {
     marginBottom: 16,
     justifyContent: 'center',
@@ -323,6 +349,12 @@ const styles = StyleSheet.create({
   loadMoreText: { color: '#FFFFFF' },
   noMoreChaptersText: { color: '#AAAAAA', textAlign: 'center', marginBottom: 16 },
   loadingText: { color: '#AAAAAA', textAlign: 'center', marginBottom: 25 },
+  orderButton: {
+    position: 'absolute',
+    right: 0,
+    
+  
+  },
 });
 
 export default MangaDetails;
